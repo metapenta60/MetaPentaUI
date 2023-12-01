@@ -1,0 +1,22 @@
+
+.carousel{
+    max-width: available;
+    color: white;
+}
+
+
+
+
+.carousel-caption h5{
+    color: white;
+}
+
+.carousel-caption p{
+    color: white;
+}
+
+img{
+    max-width: available;
+    height: 600px;
+}
+

@@ -1,0 +1,13 @@
+.float-container {
+
+
+}
+
+.float-child-left {
+    width: 20%;
+    float: left;
+}
+.float-child-right {
+    width: 80%;
+    float: right;
+}
