@@ -11,16 +11,11 @@ const Trial: React.FC = () => {
     return (
         <div className="float-container">
 
-            <div className="float-child-left">
-                <div className="green">
+            <div className="float-child-left" style={{backgroundColor:"black", maxWidth: '350px'}}>
                     <SideNavBar/>
-                </div>
             </div>
-
-            <div className="float-child-right">
-                <div className="my-4 mx-2">
+            <div className="float-child-right" style={{backgroundColor:"black"}}>
                     <Sketch/>
-                </div>
             </div>
 
         </div>
