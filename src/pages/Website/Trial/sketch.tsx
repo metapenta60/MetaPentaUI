@@ -1,7 +1,11 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import p5 from 'p5';
+import { fetchMetabolites } from '../../../API/fetch/model';
+import { Metabolite, Edge } from '../../../interfaces/types';
 
 const Sketch: React.FC = () => {
+
+    const [metabolites, setMetabolites] = useState<Metabolite[]>([]);
     interface Node {
         x: number;
         y: number;
@@ -18,7 +22,17 @@ const Sketch: React.FC = () => {
 
     useEffect(() => {
         let sketch: p5;
+        const loadData = async () => {
+            try {
+                const data = await fetchMetabolites();
+                setMetabolites(data); // Update state with fetched metabolites
+            } catch (error) {
+                console.error("Failed to fetch metabolites:", error);
+            }
+        };
 
+        loadData();
+        console.log(metabolites);
         const sketchFunction = (p: p5) => {
             let selectedNode: Node | null = null;
             let offset: p5.Vector | null = null;
@@ -35,9 +49,8 @@ const Sketch: React.FC = () => {
                 p.background(120);
                 p.stroke(0);
 
-                drawNodes();
                 drawEdges();
-
+                drawNodes();
             };
 
 
@@ -114,31 +127,28 @@ const Sketch: React.FC = () => {
             function drawEdges() {
                 p.stroke(0);
                 for (let edge of edges) {
-                    let v1:Node = nodes[edge.source];
-                    let v2:Node = nodes[edge.target];
-                    let weight:string = edge.weight;
+                    let v1 = nodes[edge.source];
+                    let v2 = nodes[edge.target];
+                    let weight = edge.weight;
 
                     // Draw line connecting nodes
                     if (v1.type === 'circle') {
                         p.line(v1.x, v1.y, v2.x, v2.y);
-                        drawArrowhead(v1.x, v1.y+5, v2.x, v2.y+5 ,0);
+                        drawArrowhead(v1.x, v1.y + 5, v2.x, v2.y + 5, 0);
                     } else if (v1.type === 'square') {
-                        p.line(v1.x + 2, v1.y + 25, v2.x - 5, v2.y - 12 );
+                        p.line(v1.x + 2, v1.y + 25, v2.x - 5, v2.y - 12);
                         drawArrowhead(v1.x + 2, v1.y + 25, v2.x - 5, v2.y - 12, -45);
-                    }
-                    else if(v1.type==='circle3'){
-                        p.line(v1.x + 30, v1.y +10, v2.x - 20, v2.y+30);
-                        drawArrowhead(v1.x - 10, v1.y, v2.x - 20, v2.y+36,-15);
+                    } else if (v1.type === 'circle3') {
+                        p.line(v1.x + 30, v1.y + 10, v2.x - 20, v2.y + 30);
+                        drawArrowhead(v1.x - 10, v1.y, v2.x - 20, v2.y + 36, -15);
                     }
 
-
-                    // Display weight
-                    let weightX = (v1.x + v2.x) / 2;
-                    let weightY = (v1.y + v2.y) / 2;
-                    p.fill(255);
-                    p.ellipse(weightX+10, weightY, 30, 30);
-                    p.fill(0);
-                    p.text(weight, weightX, weightY);
+                    // Display weight text adjusted to be along the line
+                    let midX = (v1.x + v2.x) / 2;
+                    let midY = (v1.y + v2.y) / 2;
+                    p.fill(0); // Set text color
+                    p.textAlign(p.CENTER, p.CENTER); // Align text for better positioning
+                    p.text(weight, midX, midY);
                 }
             }
 
@@ -151,6 +161,37 @@ const Sketch: React.FC = () => {
                 p.rotate(angleInRadians);
                 p.triangle(-5, 10, 5, 10, 0, 0);
                 p.pop();
+            }
+
+            // Calculates the edge point on a circle for a line between two points
+            function getCircleEdgePoint(node: Node, targetX: number, targetY: number): { x: number; y: number; } {
+                const radius: number = 20; // Assuming circle radius is 20
+                const angle: number = Math.atan2(targetY - node.y, targetX - node.x);
+                return {
+                    x: node.x + Math.cos(angle) * radius,
+                    y: node.y + Math.sin(angle) * radius,
+                };
+            }
+
+            // Calculates the edge point on a square for a line
+            function getSquareEdgePoint(node: Node, targetX: number, targetY: number): { x: number; y: number; } {
+                const width: number = 40; // Assuming square's width and height
+                const halfWidth: number = width / 2;
+                const dx: number = targetX - node.x;
+                const dy: number = targetY - node.y;
+                let angle: number = Math.atan2(dy, dx);
+                let x: number, y: number;
+
+                if (Math.abs(Math.tan(angle)) < 1) {
+                    // Intersects with left/right side
+                    x = dx > 0 ? node.x + halfWidth : node.x - halfWidth;
+                    y = node.y + Math.tan(angle) * (dx > 0 ? halfWidth : -halfWidth);
+                } else {
+                    // Intersects with top/bottom
+                    x = node.x + (dy > 0 ? halfWidth : -halfWidth) / Math.tan(angle);
+                    y = dy > 0 ? node.y + halfWidth : node.y - halfWidth;
+                }
+                return { x, y };
             }
 
             function createGraph() {
