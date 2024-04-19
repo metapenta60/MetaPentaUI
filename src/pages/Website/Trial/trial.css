@@ -1,13 +1,6 @@
-.float-container {
-
-
-}
-
-.float-child-left {
-    width: 20%;
-    float: left;
-}
-.float-child-right {
-    width: 80%;
-    float: right;
+.sidebar {
+    position: fixed;
+    top: 50%;
+    right: 0;
+    transform: translateY(-50%);
 }

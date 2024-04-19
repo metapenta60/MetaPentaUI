@@ -1,245 +1,161 @@
 import React, { useEffect, useState } from 'react';
 import p5 from 'p5';
-import { fetchMetabolites } from '../../../API/fetch/model';
-import { Metabolite, Edge } from '../../../interfaces/types';
+import {VisualNode, VisualEdge, ReactionsData, Bounds} from '../../../interfaces/types';
+import { fetchReactions } from '../../../API/fetch/reactions';
+import { transformToVisualData} from "./transformation";
+
+
 
 const Sketch: React.FC = () => {
+    const [visualData, setVisualData] = useState<{ nodes: VisualNode[]; edges: VisualEdge[] }>({ nodes: [], edges: [] });
 
-    const [metabolites, setMetabolites] = useState<Metabolite[]>([]);
-    interface Node {
-        x: number;
-        y: number;
-        label: string;
-        color: string;
-        type: string;
-    }
+    function calculateBounds(nodes: VisualNode[]): Bounds {
+        let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
 
-    interface Edge {
-        source: number;
-        target: number;
-        weight: string;
+        nodes.forEach(node => {
+            minX = Math.min(minX, node.x - 20);
+            maxX = Math.max(maxX, node.x + 20);
+            minY = Math.min(minY, node.y - 20);
+            maxY = Math.max(maxY, node.y + 20);
+        });
+
+        return { minX, maxX, minY, maxY };
     }
 
     useEffect(() => {
-        let sketch: p5;
         const loadData = async () => {
             try {
-                const data = await fetchMetabolites();
-                setMetabolites(data); // Update state with fetched metabolites
+                const data: ReactionsData = await fetchReactions();
+                console.log(data);
+                const { nodes, edges } = transformToVisualData(data);
+                setVisualData({ nodes, edges });
             } catch (error) {
-                console.error("Failed to fetch metabolites:", error);
+                console.error("Failed to fetch data:", error);
             }
         };
 
         loadData();
-        console.log(metabolites);
-        const sketchFunction = (p: p5) => {
-            let selectedNode: Node | null = null;
+    }, []);
+
+    useEffect(() => {
+        const sketch = new p5((p: p5) => {
+            let selectedNode: VisualNode | null = null;
             let offset: p5.Vector | null = null;
-            const nodes: Node[] = [];
-            const edges: Edge[] = [];
 
             p.setup = () => {
-                p.createCanvas(800, 700);
-                createGraph();
+                const bounds = calculateBounds(visualData.nodes);
+                // Adding a margin around the content
+                const margin = 50;
+                const width = bounds.maxX - bounds.minX + margin * 20;
+                const height = bounds.maxY - bounds.minY + margin * 2;
 
+                // Adjust canvas position if needed to ensure it's visible
+                const canvasX = Math.max(0, -bounds.minX + margin);
+                const canvasY = Math.max(0, -bounds.minY + margin);
+
+                p.createCanvas(width, height);
+                p.translate(canvasX, canvasY);
+                p.textAlign(p.CENTER, p.CENTER);
             };
 
             p.draw = () => {
-                p.background(120);
-                p.stroke(0);
-
-                drawEdges();
-                drawNodes();
+                p.background(245);
+                drawEdges(p, visualData.edges, visualData.nodes);
+                drawNodes(p, visualData.nodes);
             };
 
+            p.windowResized = () => {
+                p.resizeCanvas(p.windowWidth, p.windowHeight);
+            };
 
-            p.mousePressed=()=> {
+            p.mousePressed = () => {
+                visualData.nodes.forEach((node) => {
+                    const d = p.dist(p.mouseX, p.mouseY, node.x, node.y);
+                    const nodeRadius = node.type === 'circle' ? 20 : Math.sqrt(800); // Assuming square size is 40x40, hence diagonal is sqrt(1600)
+                    const isInsideNode = d < nodeRadius;
 
-
-
-
-                for (let node of nodes) {
-                    let d: number = Number.MAX_VALUE;
-
-                    if (node.type === 'circle') {
-                        d = p.dist(p.mouseX, p.mouseY, node.x, node.y);
-                    } else if (node.type === 'square') {
-                        d = p.dist(p.mouseX, p.mouseY, node.x, node.y + 27);
-                    } else if (node.type === 'circle3') {
-                        d = p.dist(p.mouseX, p.mouseY, node.x + 5, node.y + 10);
-                    } else if (node.type === 'square1') {
-                        d = p.dist(p.mouseX, p.mouseY, node.x, node.y + 27);
-                    }
-
-
-                    if (d < 20) {
+                    if (isInsideNode) {
                         selectedNode = node;
                         offset = p.createVector(p.mouseX - node.x, p.mouseY - node.y);
-                        break;
+                        p.cursor(p.HAND); // Optional: Change cursor to indicate draggable item
+                        return;
                     }
+                });
+            };
+
+            p.mouseDragged = () => {
+                if (selectedNode && offset) {
+                    selectedNode.x = p.mouseX - offset.x;
+                    selectedNode.y = p.mouseY - offset.y;
                 }
-            }
+            };
 
-            p.mouseDragged=()=> {
-                if (selectedNode) {
-                    selectedNode.x = p.mouseX - offset!.x;
-                    selectedNode.y = p.mouseY - offset!.y;
-                }
-            }
+            p.mouseReleased = () => {
+                // document.body.style.cursor = 'default';
+                // selectedNode = null;
+                // p.cursor(p.ARROW); // Optional: Revert cursor to default
+            };
 
-            p.mouseReleased=()=> {
-                selectedNode = null;
-            }
-
-
-
-            function drawNodes() {
-                for (let node of nodes) {
+            function drawNodes(p: p5, nodes: VisualNode[]): void {
+                nodes.forEach((node) => {
                     p.fill(node.color);
                     if (node.type === 'circle') {
-
                         p.ellipse(node.x, node.y, 40, 40);
-                        p.fill(0);
-                        p.text(node.label, node.x, node.y);
-                    } else if (node.type === 'square') {
-
-                        p.rect(node.x - 20, node.y + 5, 40, 40);
-                        p.fill(0);
-                        p.text(node.label, node.x, node.y + 27);
+                    } else { // Assume type 'square' for reactions
+                        p.rect(node.x - 20, node.y - 20, 40, 40);
                     }
-                    else if (node.type==='circle3' ){
-                        p.ellipse(node.x +10 , node.y + 5, 40, 40);
-                        p.fill(0);
-                        p.text(node.label, node.x +5, node.y + 10);
+                    p.fill(0);
+                    p.text(node.label, node.x, node.y);
+                });
+            }
+
+            function drawEdges(p: p5, edges: VisualEdge[], nodes: VisualNode[]): void {
+                edges.forEach(edge => {
+                    const sourceNode = nodes.find(node => node.id === edge.source);
+                    const targetNode = nodes.find(node => node.id === edge.target);
+                    if (sourceNode && targetNode) {
+                        // Now passing edge.color to drawArrow
+                        drawArrow(p, sourceNode.x, sourceNode.y, targetNode.x, targetNode.y, edge.color);
                     }
-
-                    else if (node.type==='square1' ){
-                        p.rect(node.x - 15, node.y + 5, 40, 40);
-                        p.fill(0);
-                        p.text(node.label, node.x, node.y + 27);
-                    }
-
-
-                }
+                });
             }
 
-            function drawEdges() {
-                p.stroke(0);
-                for (let edge of edges) {
-                    let v1 = nodes[edge.source];
-                    let v2 = nodes[edge.target];
-                    let weight = edge.weight;
+            function drawArrow(p: p5, sourceX: number, sourceY: number, targetX: number, targetY: number, color: string | p5.Color) {
 
-                    // Draw line connecting nodes
-                    if (v1.type === 'circle') {
-                        p.line(v1.x, v1.y, v2.x, v2.y);
-                        drawArrowhead(v1.x, v1.y + 5, v2.x, v2.y + 5, 0);
-                    } else if (v1.type === 'square') {
-                        p.line(v1.x + 2, v1.y + 25, v2.x - 5, v2.y - 12);
-                        drawArrowhead(v1.x + 2, v1.y + 25, v2.x - 5, v2.y - 12, -45);
-                    } else if (v1.type === 'circle3') {
-                        p.line(v1.x + 30, v1.y + 10, v2.x - 20, v2.y + 30);
-                        drawArrowhead(v1.x - 10, v1.y, v2.x - 20, v2.y + 36, -15);
-                    }
+                const arrowColor = typeof color === 'string' ? p.color(color) : color;
+                // Calculate the angle from the source to the target
+                const angle = Math.atan2(targetY - sourceY, targetX - sourceX);
 
-                    // Display weight text adjusted to be along the line
-                    let midX = (v1.x + v2.x) / 2;
-                    let midY = (v1.y + v2.y) / 2;
-                    p.fill(0); // Set text color
-                    p.textAlign(p.CENTER, p.CENTER); // Align text for better positioning
-                    p.text(weight, midX, midY);
-                }
+                // Set the length of the arrow head
+                const arrowLength = 60;
+                const arrowWidth = 20;
+
+                // Move to the source position
+                p.push(); // Save the current drawing state
+                p.stroke(arrowColor); // Set arrow color here if needed
+                p.fill(arrowColor); // Set arrow fill color here if needed
+
+                // Draw the line from source to target
+                p.line(sourceX, sourceY, targetX, targetY);
+
+                // Move to the target position and rotate to draw the arrow head
+                p.translate(targetX, targetY);
+                p.rotate(angle);
+
+                // Draw the arrow head as a triangle
+                p.triangle(0, 0, -arrowLength, arrowWidth, -arrowLength, -arrowWidth);
+
+                p.pop(); // Restore the original drawing state
             }
 
-            function drawArrowhead(x1:number, y1:number, x2:number, y2:number,radian:number) {
-                let angle:number = p.atan2(y2 - y1, x2 - x1);
-                p.push();
-                p.translate(x2, y2);
-                let angleInDegrees = 180 + radian;
-                let angleInRadians = p.radians(angleInDegrees);
-                p.rotate(angleInRadians);
-                p.triangle(-5, 10, 5, 10, 0, 0);
-                p.pop();
-            }
+        });
 
-            // Calculates the edge point on a circle for a line between two points
-            function getCircleEdgePoint(node: Node, targetX: number, targetY: number): { x: number; y: number; } {
-                const radius: number = 20; // Assuming circle radius is 20
-                const angle: number = Math.atan2(targetY - node.y, targetX - node.x);
-                return {
-                    x: node.x + Math.cos(angle) * radius,
-                    y: node.y + Math.sin(angle) * radius,
-                };
-            }
-
-            // Calculates the edge point on a square for a line
-            function getSquareEdgePoint(node: Node, targetX: number, targetY: number): { x: number; y: number; } {
-                const width: number = 40; // Assuming square's width and height
-                const halfWidth: number = width / 2;
-                const dx: number = targetX - node.x;
-                const dy: number = targetY - node.y;
-                let angle: number = Math.atan2(dy, dx);
-                let x: number, y: number;
-
-                if (Math.abs(Math.tan(angle)) < 1) {
-                    // Intersects with left/right side
-                    x = dx > 0 ? node.x + halfWidth : node.x - halfWidth;
-                    y = node.y + Math.tan(angle) * (dx > 0 ? halfWidth : -halfWidth);
-                } else {
-                    // Intersects with top/bottom
-                    x = node.x + (dy > 0 ? halfWidth : -halfWidth) / Math.tan(angle);
-                    y = dy > 0 ? node.y + halfWidth : node.y - halfWidth;
-                }
-                return { x, y };
-            }
-
-            function createGraph() {
-                // Create nodes
-                let circle1 = { x: 100, y: 100, label: 'A', color: 'orange', type: 'circle' };
-
-                let circle2 = { x: 300, y: 100, label: 'B', color: 'orange', type: 'circle' };
-
-                let square = { x: 200, y: 300, label: 'C', color: 'blue', type: 'square' };
-
-                let circle3 = { x: 300, y: 500, label: 'D', color: 'pink', type: 'circle3' };
-
-                let square1 = { x: 500, y: 400, label: 'E', color: 'blue', type: 'square1' };
-
-
-                nodes.push(circle1);
-                nodes.push(circle2);
-                nodes.push(square);
-                nodes.push(circle3);
-                nodes.push(square1);
-
-                // Create edges
-
-                edges.push({source: 1, target:2, weight: '1.0'}); // B to C with weight 1.0
-                edges.push({source: 0, target: 2, weight: '1.0'}); // A to C with weight 1.0
-                edges.push({source: 0, target: 2, weight:'1.0'}); // A to C with weight 1.0 (square connection)
-                edges.push({source:2,target:3,weight:'1.0'});// C to D with weight 1.0
-                edges.push({source: 3, target: 4,weight:'1.0'});// D to E with weight 1.0
-
-
-            }
-
-
-        };
-
-
-        // Create a new p5 instance
-        sketch = new p5(sketchFunction);
-
-        // Clean up the sketch on component unmount
         return () => {
-            if (sketch) {
-                sketch.remove();
-            }
+            sketch.remove();
         };
-    }, []);
+    }, [visualData]);
 
-    return <></>;
+    return <div />;
 };
 
 export default Sketch;

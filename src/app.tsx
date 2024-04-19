@@ -9,12 +9,14 @@ import Acerca from "./pages/Website/Acerca/acerca";
 import Contacto from "./pages/Website/Contacto/contacto";
 import Trial from "./pages/Website/Trial/trial";
 import React from 'react';
+import ResponsiveAppBar from "./components/ui/ResponsiveAppBar/responsiveAppBar";
 
 function App() {
   return (
       <>
           <div className="App">
               <Barra/>
+              {/*<ResponsiveAppBar/>*/}
           </div>
           <div className="content">
               <Routes>
@@ -28,10 +30,7 @@ function App() {
 
   );
 }
-/*
-*                          <Route path="/create-user" element={<CreateUser />} />
-*                          <Route path="/users" element={<Users />} />
-*/
+
 
 export default App;
 
