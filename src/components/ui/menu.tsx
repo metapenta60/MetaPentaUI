@@ -1,104 +1,136 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {Textarea} from "@material-tailwind/react";
-import {Button} from "antd";
-
+import { alpha } from '@mui/material';
+import DrawIcon from '@mui/icons-material/Draw';
+import Box from '@mui/material/Box';
+import Grid from '@mui/material/Grid';
+import Button from '@mui/material/Button';
+import Container from '@mui/material/Container';
+import Link from '@mui/material/Link';
+import Stack from '@mui/material/Stack';
+import TextField from '@mui/material/TextField';
+import Typography from '@mui/material/Typography';
+import Sketch from '../../pages/Website/Trial/sketch';
 const Menu = () => {
+
+    const [inputNodes, setInputNodes] = useState<string>('');
+    const [triggerUpdate, setTriggerUpdate] = useState(true);
+    const handleInputNodes = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setInputNodes(event.target.value);
+    };
+
+    const handleDraw = () => {
+        setTriggerUpdate(true);
+    };
+
+
+
     return (
         <>
-            <div className="flex items-center justify-center h-screen bg-white">
-                <h2 className="text-black font-bold">Find metabolic path</h2>
-            </div>
 
-            <nav style={{
-                height: '53vh',
-                backgroundColor: 'whitesmoke',
-                padding: '5px',
-            display: 'flex',
-            flexDirection: 'row',
-            justifyContent: 'space-around',
-            alignItems: 'center',
-            flexWrap: 'wrap'
-        }}>
+            <Box
+                id="hero"
+                sx={(theme) => ({
+                    width: '100%',
+                    backgroundImage:
+                        theme.palette.mode === 'light'
+                            ? 'linear-gradient(180deg, #CEE5FD, #FFF)'
+                            : `linear-gradient(#02294F, ${alpha('#090E10', 0.0)})`,
+                    backgroundSize: '100% 20%',
+                    backgroundRepeat: 'no-repeat',
+                })}
+            >
 
-            <div style={{
-                justifyContent: 'center',
-                alignItems: 'center',
-                maxWidth: '350px',
-                backgroundColor: "whitesmoke",
-                display: 'flex',
-                flexDirection: 'column',
-                padding: '20px',
-                border: '1px solid black',
-            }}>
+                <Container
+                    sx={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        pt: { xs: 14, sm: 20 },
+                        pb: { xs: 8, sm: 12 },
+                    }}
+                >
+                    <Typography variant="h2" align="center" gutterBottom>
+                        MetaPeNTA
+                    </Typography>
+                    <Container maxWidth="md">
+                        <Grid container spacing={10} sx={{ '& .MuiGrid-item': { marginBottom: -4 } }}>
+                            <Grid item xs={12} sm={4} xl={4}>
+                                <TextField
+                                    fullWidth
+                                    id="outlined-multiline-static-1"
+                                    label="Set de metabolitos a pintar"
+                                    value={inputNodes}
+                                    onChange={handleInputNodes}
+                                    multiline
+                                    rows={4}
+                                    placeholder="metabolito1, metabolito2, metabolito3"
+                                    margin="normal"
+                                    variant="outlined"
+                                />
+                                <Button variant="contained" endIcon={<DrawIcon />} sx={{
+                                    backgroundColor: 'green',
+                                    color: 'white',
+                                    '&:hover': {
+                                        backgroundColor: 'lightgreen',
+                                    }}}
+                                        onClick={handleDraw}
+                                >
+                                    Draw
+                                </Button>
 
-                <h3>Initial metabolites</h3>
-                <Textarea rows={5} size="lg" placeholder="Insert reaction" className="w-100"/>
-                <h3>Target Metabolite</h3>
-                <Textarea rows={1} size="lg" placeholder="Insert target metabolite" className="w-100"/>
-                {/* Buttons Row */}
-                <div style={{display: 'flex', justifyContent: 'space-between', width: '100%'}}>
-                    <Button type="default" size="large">
-                        Upload file
-                    </Button>
-                    <Button type="default" size="large">
-                        Find path
-                    </Button>
-                    <Button type="default" size="large">
-                        Download
-                    </Button>
-                </div>
-            </div>
 
-            <div style={{
-                justifyContent: 'center',
-                alignItems: 'center',
-                maxWidth: '350px',
-                backgroundColor: "whitesmoke",
-                display: 'flex',
-                flexDirection: 'column',
-                padding: '20px',
-                border: '1px solid black',
-                height: '100%'
-            }}>
-                <h3 className="font-black">Find Reactions</h3>
-                <h5>Find the reactions of a metabolite</h5>
-                <Textarea rows={1} size="lg" placeholder="Metabolite" className="w-100"/>
+                            </Grid>
+                            <Grid item xs={12} sm={4} xl={4}>
+                                <TextField
+                                    fullWidth
+                                    id="outlined-multiline-static-1"
+                                    label="requerimiento2"
+                                    multiline
+                                    rows={4}
+                                    placeholder="requerimiento2"
+                                    margin="normal"
+                                    variant="outlined"
+                                />
+                                <Button variant="contained" endIcon={<DrawIcon />} sx={{
+                                    backgroundColor: 'green',
+                                    color: 'white',
+                                    '&:hover': {
+                                        backgroundColor: 'lightgreen',
+                                    }
+                                }}>
+                                    Req2
+                                </Button>
+                            </Grid>
+                            <Grid item xs={12} sm={4} xl={4}>
+                                <TextField
+                                    fullWidth
+                                    id="outlined-multiline-static-1"
+                                    label="requerimiento3"
+                                    multiline
+                                    rows={4}
+                                    placeholder="requerimiento3"
+                                    margin="normal"
+                                    variant="outlined"
+                                />
+                                <Button variant="contained" endIcon={<DrawIcon />} sx={{
+                                    backgroundColor: 'green',
+                                    color: 'white',
+                                    '&:hover': {
+                                        backgroundColor: 'lightgreen',
+                                    }
+                                }}>
+                                    Req3
+                                </Button>
+                            </Grid>
 
-                <div style={{display: 'flex', justifyContent: 'space-between', width: '100%'}}>
-                    <Button type="default" size="large">
-                        Find
-                    </Button>
-                    <Button type="default" size="large">
-                        Download
-                    </Button>
-                </div>
-            </div>
-            <div style={{
-                justifyContent: 'center',
-                alignItems: 'center',
-                maxWidth: '350px',
-                backgroundColor: "whitesmoke",
-                display: 'flex',
-                flexDirection: 'column',
-                padding: '20px',
-                border: '1px solid black',
-            }}>
-                <h3 className="font-black">Another future</h3>
-                <h5>Find the reactions of a metabolite</h5>
-                <Textarea rows={1} size="lg" placeholder="Metabolite" className="w-100"/>
+                        </Grid>
+                    </Container>
 
-                <div style={{display: 'flex', justifyContent: 'space-between', width: '100%'}}>
-                    <Button type="default" size="large">
-                        Find
-                    </Button>
-                    <Button type="default" size="large">
-                        Download
-                    </Button>
-                </div>
-            </div>
+                    <Sketch inputNodes={inputNodes} triggerUpdate={triggerUpdate} setTriggerUpdate={setTriggerUpdate} />
 
-        </nav>
-            <hr/>
+                </Container>
+            </Box>
         </>
     );
 }

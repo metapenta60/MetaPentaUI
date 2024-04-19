@@ -5,8 +5,22 @@ import { fetchReactions } from '../../../API/fetch/reactions';
 import { transformToVisualData} from "./transformation";
 
 
+interface SketchProps {
+    inputNodes: string;
+    triggerUpdate: boolean;
+    setTriggerUpdate: (update: boolean) => void;
+}
 
-const Sketch: React.FC = () => {
+interface FilteredVisualData {
+    nodes: VisualNode[];
+    edges: VisualEdge[];
+}
+
+interface VisualData {
+    nodes: VisualNode[];
+    edges: VisualEdge[];
+}
+const Sketch: React.FC<SketchProps> = ({inputNodes, triggerUpdate, setTriggerUpdate}) => {
     const [visualData, setVisualData] = useState<{ nodes: VisualNode[]; edges: VisualEdge[] }>({ nodes: [], edges: [] });
 
     function calculateBounds(nodes: VisualNode[]): Bounds {
@@ -23,19 +37,45 @@ const Sketch: React.FC = () => {
     }
 
     useEffect(() => {
-        const loadData = async () => {
-            try {
-                const data: ReactionsData = await fetchReactions();
-                console.log(data);
-                const { nodes, edges } = transformToVisualData(data);
-                setVisualData({ nodes, edges });
-            } catch (error) {
-                console.error("Failed to fetch data:", error);
-            }
-        };
+        if (triggerUpdate) {
+            const loadData = async () => {
+                try {
+                    const data: ReactionsData = await fetchReactions();
+                    console.log(data);
+                    const initialVisualData = transformToVisualData(data); // Transforming reactions data to visual format
+                    setVisualData(initialVisualData);
 
-        loadData();
-    }, []);
+                    if (inputNodes !== '') {
+                        console.log("Filtering nodes for:", inputNodes);
+                        const filteredData = filterVisualData(initialVisualData, inputNodes);
+                        setVisualData(filteredData);
+                    }
+
+                } catch (error) {
+                    console.error("Failed to fetch data:", error);
+                }
+            };
+
+            loadData();
+            setTriggerUpdate(false);
+        }
+    }, [triggerUpdate]);
+
+    const filterVisualData = (visualData: VisualData, inputNodes: string): FilteredVisualData => {
+
+        const inputArray = inputNodes.split(',').map(item => item.trim().toLowerCase());
+
+        const filteredNodes = visualData.nodes.filter(node =>
+            inputArray.includes(node.label.toLowerCase())
+        );
+
+        const filteredEdges = visualData.edges.filter(edge =>
+            filteredNodes.some(node => node.id === edge.source) &&
+            filteredNodes.some(node => node.id === edge.target)
+        );
+
+        return { nodes: filteredNodes, edges: filteredEdges };
+    };
 
     useEffect(() => {
         const sketch = new p5((p: p5) => {
@@ -59,7 +99,8 @@ const Sketch: React.FC = () => {
             };
 
             p.draw = () => {
-                p.background(245);
+                p.background(255);
+                // colored margin around the canvas
                 drawEdges(p, visualData.edges, visualData.nodes);
                 drawNodes(p, visualData.nodes);
             };
@@ -91,10 +132,15 @@ const Sketch: React.FC = () => {
             };
 
             p.mouseReleased = () => {
-                // document.body.style.cursor = 'default';
-                // selectedNode = null;
-                // p.cursor(p.ARROW); // Optional: Revert cursor to default
+                if (selectedNode) {
+                    selectedNode = null;
+                    offset = null;
+                    if (p) {
+                        p.cursor(p.ARROW); // Change cursor back to default
+                    }
+                }
             };
+
 
             function drawNodes(p: p5, nodes: VisualNode[]): void {
                 nodes.forEach((node) => {
@@ -127,8 +173,8 @@ const Sketch: React.FC = () => {
                 const angle = Math.atan2(targetY - sourceY, targetX - sourceX);
 
                 // Set the length of the arrow head
-                const arrowLength = 60;
-                const arrowWidth = 20;
+                const arrowLength = 35;
+                const arrowWidth = 13;
 
                 // Move to the source position
                 p.push(); // Save the current drawing state

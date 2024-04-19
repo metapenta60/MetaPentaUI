@@ -36,7 +36,7 @@ function transformToVisualData(reactionsData: ReactionsData): { nodes: VisualNod
             label: reaction.name,
             x: position.x,
             y: position.y,
-            color: 'blue',
+            color: 'lightblue',
             type: 'square'
         });
 

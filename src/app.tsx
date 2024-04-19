@@ -1,31 +1,45 @@
 import './App.css';
-
 import "./assets/fonts/Barlow-SemiBold.ttf";
 import '../node_modules/bootstrap/dist/css/bootstrap.min.css'
 import { Routes, Route } from 'react-router-dom';
-import Home from "./pages/Website/Home/home";
-import Barra from "./components/ui/navBar/barra";
-import Acerca from "./pages/Website/Acerca/acerca";
-import Contacto from "./pages/Website/Contacto/contacto";
 import Trial from "./pages/Website/Trial/trial";
-import React from 'react';
-import ResponsiveAppBar from "./components/ui/ResponsiveAppBar/responsiveAppBar";
+import React, {useState} from 'react';
+import {createTheme, PaletteMode, ThemeProvider} from "@mui/material";
+import Box from "@mui/material/Box";
 
 function App() {
-  return (
+
+    const [mode, setMode] = useState<PaletteMode>('light'); // default to 'light'
+
+    const theme = createTheme({
+        palette: {
+            mode: mode,
+        },
+    });
+
+    const toggleColorMode = () => {
+        setMode((prevMode) => (prevMode === 'light' ? 'dark' : 'light'));
+    };
+
+
+
+    return (
       <>
           <div className="App">
-              <Barra/>
+              <ThemeProvider theme={theme}>
+                  {/*<AppAppBar mode={mode} toggleColorMode={toggleColorMode} />*/}
+                  <Box sx={{ bgcolor: 'background.default' }}>
+                  <Routes>
+                      <Route path="/" element={<Trial />} />
+                      <Route path={"/trial"} element={<Trial />}/>
+                  </Routes>
+                  </Box>
+                  {/* Other components that use the theme */}
+              </ThemeProvider>
+              {/*<Barra/>*/}
               {/*<ResponsiveAppBar/>*/}
           </div>
-          <div className="content">
-              <Routes>
-                  <Route path="/" element={<Home />} />
-                  <Route path={"/acerca"} element={<Acerca />}/>
-                  <Route path={"/contacto"} element={<Contacto />}/>
-                  <Route path={"/trial"} element={<Trial />}/>
-              </Routes>
-          </div>
+
       </>
 
   );
