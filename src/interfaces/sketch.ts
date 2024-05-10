@@ -1,6 +1,7 @@
 
 interface SketchProps {
     inputNodes: string;
+    inputReactions: string;
     triggerUpdate: boolean;
     setTriggerUpdate: (update: boolean) => void;
 }

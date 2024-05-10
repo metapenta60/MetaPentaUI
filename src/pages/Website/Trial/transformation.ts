@@ -19,7 +19,7 @@ function transformToVisualData(reactionsData: ReactionsData): { nodes: VisualNod
     const nodes: VisualNode[] = [];
     const edges: VisualEdge[] = [];
 
-    // unique metabolite IDs to correctly space them out and calculate positions
+
     const uniqueMetaboliteIDs = new Set<string>();
     reactionsData.reactions.forEach(reaction => {
         reaction.reactants.forEach(reactant => uniqueMetaboliteIDs.add(reactant.metabolite.id));
@@ -40,7 +40,6 @@ function transformToVisualData(reactionsData: ReactionsData): { nodes: VisualNod
             type: 'square'
         });
 
-        // process reactants and products together to avoid duplications and correctly position them
         [...reaction.reactants, ...reaction.products].forEach(item => {
             const metaboliteId = item.metabolite.id;
             if (!nodes.find(node => node.id === metaboliteId)) {
@@ -78,4 +77,34 @@ function transformToVisualData(reactionsData: ReactionsData): { nodes: VisualNod
     return { nodes, edges };
 }
 
-export { transformToVisualData };
+
+function rearrangeNodes(nodes: VisualNode[], canvasWidth: number): VisualNode[] {
+    const xOffset = 100;
+    const yOffset = 100;
+    const margin = 20;
+    let currentX = margin;
+    let currentY = margin;
+
+
+    const sortedNodes = nodes.sort((a, b) => {
+        if (a.type === 'square' && b.type === 'circle') return -1;
+        if (a.type === 'circle' && b.type === 'square') return 1;
+        return 0;
+    });
+
+
+    sortedNodes.forEach(node => {
+        if (currentX + xOffset > canvasWidth - margin) {
+
+            currentX = margin;
+            currentY += yOffset;
+        }
+        node.x = currentX;
+        node.y = currentY;
+        currentX += xOffset;
+    });
+
+    return sortedNodes;
+}
+
+export { transformToVisualData, rearrangeNodes };

@@ -2,12 +2,12 @@ import React, { useEffect, useState } from 'react';
 import p5 from 'p5';
 import {ReactionsData} from '../../../interfaces/types';
 import { fetchReactions } from '../../../API/fetch/reactions';
-import { transformToVisualData} from "../Trial/transformation";
+import {rearrangeNodes, transformToVisualData} from "../Trial/transformation";
 import {SketchProps, VisualEdge, VisualNode} from "../../../interfaces/sketch";
 import {filterVisualData,calculateBounds} from "./sketchVisual";
 
 
-const P5: React.FC<SketchProps> = ({inputNodes, triggerUpdate, setTriggerUpdate}) => {
+const P5: React.FC<SketchProps> = ({inputNodes, inputReactions, triggerUpdate, setTriggerUpdate}) => {
     const [visualData, setVisualData] = useState<{ nodes: VisualNode[]; edges: VisualEdge[] }>({ nodes: [], edges: [] });
 
 
@@ -23,9 +23,19 @@ const P5: React.FC<SketchProps> = ({inputNodes, triggerUpdate, setTriggerUpdate}
 
                     if (inputNodes !== '') {
                         console.log("Filtering nodes for:", inputNodes);
-                        const filteredData = filterVisualData(initialVisualData, inputNodes);
+                        const filteredData = filterVisualData(initialVisualData, inputNodes,'metabolites');
                         setVisualData(filteredData);
+                        initialVisualData.nodes = rearrangeNodes(initialVisualData.nodes, 800)
                     }
+
+                    if (inputReactions !== '') {
+                        console.log("Filtering reactions for:", inputReactions);
+                        const filteredData = filterVisualData(initialVisualData, inputReactions,'reactions');
+                        setVisualData(filteredData);
+                        initialVisualData.nodes = rearrangeNodes(initialVisualData.nodes, 800)
+                    }
+
+
 
                 } catch (error) {
                     console.error("Failed to fetch data:", error);
@@ -124,37 +134,52 @@ const P5: React.FC<SketchProps> = ({inputNodes, triggerUpdate, setTriggerUpdate}
                     const targetNode = nodes.find(node => node.id === edge.target);
                     if (sourceNode && targetNode) {
                         // Now passing edge.color to drawArrow
-                        drawArrow(p, sourceNode.x, sourceNode.y, targetNode.x, targetNode.y, edge.color);
+                        drawArrow(p, sourceNode.x, sourceNode.y, targetNode.x, targetNode.y, edge.color, targetNode.type);
                     }
                 });
             }
 
-            function drawArrow(p: p5, sourceX: number, sourceY: number, targetX: number, targetY: number, color: string | p5.Color) {
-
+            function drawArrow(p: p5, sourceX: number, sourceY: number, targetX: number, targetY: number, color: string | p5.Color, targetType: 'circle' | 'square') {
                 const arrowColor = typeof color === 'string' ? p.color(color) : color;
-                // Calculate the angle from the source to the target
                 const angle = Math.atan2(targetY - sourceY, targetX - sourceX);
 
-                // Set the length of the arrow head
-                const arrowLength = 35;
-                const arrowWidth = 13;
+                const arrowLength = 12;
+                const arrowWidth = 5;
 
-                // Move to the source position
-                p.push(); // Save the current drawing state
-                p.stroke(arrowColor); // Set arrow color here if needed
-                p.fill(arrowColor); // Set arrow fill color here if needed
+                let adjustedTargetX = targetX;
+                let adjustedTargetY = targetY;
 
-                // Draw the line from source to target
-                p.line(sourceX, sourceY, targetX, targetY);
+                if (targetType === 'circle') {
+                    const radius = 20;
+                    adjustedTargetX = targetX - Math.cos(angle) * radius;
+                    adjustedTargetY = targetY - Math.sin(angle) * radius;
+                } else if (targetType === 'square') {
+                    const halfSide = 20;
+                    const dx = halfSide / Math.abs(Math.cos(angle));
+                    const dy = halfSide / Math.abs(Math.sin(angle));
 
-                // Move to the target position and rotate to draw the arrow head
-                p.translate(targetX, targetY);
+                    if (Math.abs(dx) < Math.abs(dy)) {
+                        adjustedTargetX = targetX - Math.sign(Math.cos(angle)) * halfSide;
+                        adjustedTargetY = targetY - Math.sign(Math.sin(angle)) * Math.abs(dx * Math.tan(angle));
+                    } else {
+                        adjustedTargetX = targetX - Math.sign(Math.cos(angle)) * Math.abs(dy / Math.tan(angle));
+                        adjustedTargetY = targetY - Math.sign(Math.sin(angle)) * halfSide;
+                    }
+                }
+
+                p.push();
+                p.stroke(arrowColor);
+                p.fill(arrowColor);
+
+                // Draw the line from source to adjusted target
+                p.line(sourceX, sourceY, adjustedTargetX, adjustedTargetY);
+
+                // Draw the arrowhead
+                p.translate(adjustedTargetX, adjustedTargetY);
                 p.rotate(angle);
-
-                // Draw the arrow head as a triangle
                 p.triangle(0, 0, -arrowLength, arrowWidth, -arrowLength, -arrowWidth);
 
-                p.pop(); // Restore the original drawing state
+                p.pop();
             }
 
         });
