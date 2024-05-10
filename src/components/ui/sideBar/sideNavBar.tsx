@@ -2,7 +2,7 @@ import React from 'react';
 import { Textarea } from "@material-tailwind/react";
 
 import {Button} from "antd";
-import Sketch from "../../../pages/Website/Trial/sketch";
+import P5 from "../../../pages/Website/p5/p5";
 
 import "./sideNavBar.css";
 const SideNavBar: React.FC = () => {

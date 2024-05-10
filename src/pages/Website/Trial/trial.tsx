@@ -1,16 +1,12 @@
-import React from "react";
-import {Link} from "react-router-dom";
-
-import "./trial.css";
-
-import {Button} from "antd";
-import Sketch from "./sketch";
-import Navbar from "react-bootstrap/Navbar";
-import SideNavBar   from "../../../components/ui/sideBar/sideNavBar";
-import Barra from "../../../components/ui/navBar/barra";
+import React, {useState} from "react";
 import Menu from "../../../components/ui/menu";
 import Box from "@mui/material/Box";
+import {Container, Paper} from "@mui/material";
+import Grid from "@mui/material/Grid";
+import P5 from "../p5/p5";
 const Trial  = () => {
+
+
     return (
         <>
             <Box
@@ -25,8 +21,38 @@ const Trial  = () => {
                     backgroundRepeat: 'no-repeat',
                 })}
             >
-                <Menu/>
 
+                <Box sx={{ display: 'flex' }}>
+
+                        <Container sx={{ mt: 4, mb: 4, width:'100%'}}>
+                            <Grid container spacing={3}>
+                                {/* Chart */}
+                                <Grid item xs={12} md={8} lg={9} >
+                                    <Menu/>
+
+                                </Grid>
+                                <Grid item xs={12} md={4} lg={3} sx={{mt:12}}>
+                                    <Paper
+                                        sx={{
+                                            pt:10,
+                                            p: 2,
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            height: 260,
+                                        }}
+                                    >
+                                        Name: <br/>
+                                        Type: <br/>
+                                        Reactants: <br/>
+
+
+
+                                        {/*<div/>*/}
+                                    </Paper>
+                                </Grid>
+                            </Grid>
+                        </Container>
+                </Box>
             </Box>
         </>
 
