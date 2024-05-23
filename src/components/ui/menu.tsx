@@ -6,7 +6,7 @@ import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
 import Button from '@mui/material/Button';
 import Container from '@mui/material/Container';
-import { DataGrid, GridColDef } from '@mui/x-data-grid';
+import FileUpload from '../fileUpload/fileUpload';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import P5 from '../../pages/Website/p5/p5';
@@ -119,7 +119,9 @@ const Menu = () => {
                                     Req3
                                 </Button>
                             </Grid>
-
+                            <Grid item xs={12} sm={3} xl={3}>
+                                <FileUpload setTriggerUpdate={setTriggerUpdate} />
+                            </Grid>
                         </Grid>
                     </Container>
 
