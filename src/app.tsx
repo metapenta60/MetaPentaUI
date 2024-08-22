@@ -5,7 +5,6 @@ import { Routes, Route } from 'react-router-dom';
 import Trial from "./pages/Website/Trial/trial";
 import React, {useState} from 'react';
 import {createTheme, PaletteMode, ThemeProvider} from "@mui/material";
-import Box from "@mui/material/Box";
 
 function App() {
 
@@ -17,28 +16,22 @@ function App() {
         },
     });
 
-    const toggleColorMode = () => {
-        setMode((prevMode) => (prevMode === 'light' ? 'dark' : 'light'));
-    };
-
 
 
     return (
       <>
-          <div className="App">
+          
               <ThemeProvider theme={theme}>
                   {/*<AppAppBar mode={mode} toggleColorMode={toggleColorMode} />*/}
-                  <Box sx={{ bgcolor: 'background.default' }}>
                   <Routes>
                       <Route path="/" element={<Trial />} />
-                      <Route path={"/trial"} element={<Trial />}/>
+                      <Route path={"/cytoscape"} element={<Trial />}/>
                   </Routes>
-                  </Box>
+                  
                   {/* Other components that use the theme */}
               </ThemeProvider>
               {/*<Barra/>*/}
               {/*<ResponsiveAppBar/>*/}
-          </div>
 
       </>
 

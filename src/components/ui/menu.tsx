@@ -1,6 +1,4 @@
 import React, {useState} from 'react';
-import {Textarea} from "@material-tailwind/react";
-import { alpha } from '@mui/material';
 import DrawIcon from '@mui/icons-material/Draw';
 import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
@@ -10,7 +8,10 @@ import FileUpload from '../fileUpload/fileUpload';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import P5 from '../../pages/Website/p5/p5';
+import Cytoscape from "../../pages/Website/cytoscape/cytoscape";
+import {useLocation} from "react-router-dom";
 const Menu = () => {
+    const location = useLocation();
 
     const [inputNodes, setInputNodes] = useState<string>('');
     const [inputReactions, setInputReactions] = useState<string>('');
@@ -61,14 +62,8 @@ const Menu = () => {
                                     margin="normal"
                                     variant="outlined"
                                 />
-                                <Button variant="contained" endIcon={<DrawIcon />} sx={{
-                                    backgroundColor: 'green',
-                                    color: 'white',
-                                    '&:hover': {
-                                        backgroundColor: 'lightgreen',
-                                    }}}
-                                        onClick={handleDraw}
-                                >
+                                <Button variant="contained" endIcon={<DrawIcon />} sx={{ backgroundColor: 'green',
+                                    color: 'white', '&:hover': {backgroundColor: 'lightgreen',}}} onClick={handleDraw}>
                                     Draw Reactions
                                 </Button>
 
@@ -124,9 +119,11 @@ const Menu = () => {
                             </Grid>
                         </Grid>
                     </Container>
-
-                    <P5 inputNodes={inputNodes} inputReactions={inputReactions} triggerUpdate={triggerUpdate} setTriggerUpdate={setTriggerUpdate} />
-
+                    <br/>
+                    <br/>
+                    {
+                        (location.pathname === '/cytoscape') ? <Cytoscape  /> : <P5 inputNodes={inputNodes} inputReactions={inputReactions} triggerUpdate={triggerUpdate} setTriggerUpdate={setTriggerUpdate} />
+                    }
                 </Container>
             </Box>
         </>

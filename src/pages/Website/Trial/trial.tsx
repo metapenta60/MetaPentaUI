@@ -11,17 +11,9 @@ const Trial  = () => {
         <>
             <Box
                 id="hero"
-                sx={(theme) => ({
-                    width: '100%',
-                    backgroundImage:
-                        theme.palette.mode === 'light'
-                            ? 'linear-gradient(180deg, #CEE5FD, #FFF)'
-                            : `linear-gradient(#02294F, ${alpha('#090E10')})`,
+                sx={{ width: '100%',
                     backgroundSize: '100% 20%',
-                    backgroundRepeat: 'no-repeat',
-                })}
-            >
-
+                    backgroundRepeat: 'no-repeat'}}>
                 <Box sx={{ display: 'flex' }}>
 
                         <Container sx={{ mt: 4, mb: 4, width:'100%'}}>
@@ -29,25 +21,13 @@ const Trial  = () => {
                                 {/* Chart */}
                                 <Grid item xs={12} md={8} lg={9} >
                                     <Menu/>
-
                                 </Grid>
+
                                 <Grid item xs={12} md={4} lg={3} sx={{mt:12}}>
-                                    <Paper
-                                        sx={{
-                                            pt:10,
-                                            p: 2,
-                                            display: 'flex',
-                                            flexDirection: 'column',
-                                            height: 260,
-                                        }}
-                                    >
+                                    <Paper sx={{pt:10, p: 2, display: 'flex', flexDirection: 'column', height: 260, }}>
                                         Name: <br/>
                                         Type: <br/>
                                         Reactants: <br/>
-
-
-
-                                        {/*<div/>*/}
                                     </Paper>
                                 </Grid>
                             </Grid>
