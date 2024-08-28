@@ -31,23 +31,13 @@ const Menu = () => {
     return (
         <>
 
-            <Box
-                id="hero"
-            >
-
-                <Container
-                    sx={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        pt: { xs: 14, sm: 20, xl: 5 },
-                        pb: { xs: 8, sm: 12, xl: 5},
-                    }}
-                >
-                    <Typography variant="h2" align="center" gutterBottom>
-                        MetaPeNTA
-                    </Typography>
-                    <Container maxWidth="xl">
+            
+                <Typography variant="h2" align="center" gutterBottom>
+                    MetaPeNTA
+                </Typography>
+                <Container maxWidth="xl" sx={{borderColor:'black', borderRadius: 2}} disableGutters>
+                    
+                    {/* <Container maxWidth="xl">
                         <Grid container spacing={1} sx={{ '& .MuiGrid-item': { marginBottom: -4 } }}>
                             <Grid item xs={12} sm={3} xl={3}>
                                 <TextField
@@ -64,7 +54,7 @@ const Menu = () => {
                                 />
                                 <Button variant="contained" endIcon={<DrawIcon />} sx={{ backgroundColor: 'green',
                                     color: 'white', '&:hover': {backgroundColor: 'lightgreen',}}} onClick={handleDraw}>
-                                    Draw Reactions
+                                    Draw Metabolites
                                 </Button>
 
 
@@ -90,7 +80,7 @@ const Menu = () => {
                                     }}}
                                 onClick={handleDraw}
                                 >
-                                    Draw Metabolites
+                                    Draw Reactions
                                 </Button>
                             </Grid>
                             <Grid item xs={12} sm={3} xl={3}>
@@ -118,14 +108,16 @@ const Menu = () => {
                                 <FileUpload setTriggerUpdate={setTriggerUpdate} />
                             </Grid>
                         </Grid>
-                    </Container>
-                    <br/>
-                    <br/>
+                    </Container> */}
+                    <Container maxWidth="xl" disableGutters> 
+
                     {
                         (location.pathname === '/cytoscape') ? <Cytoscape  /> : <P5 inputNodes={inputNodes} inputReactions={inputReactions} triggerUpdate={triggerUpdate} setTriggerUpdate={setTriggerUpdate} />
                     }
+                    </Container>
+                    
                 </Container>
-            </Box>
+            
         </>
     );
 }

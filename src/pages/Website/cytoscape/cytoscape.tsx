@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import cytoscape from 'cytoscape';
 import dagre from 'cytoscape-dagre';
-
+import cola from 'cytoscape-cola';
+import klay from 'cytoscape-klay';
+import elk from 'cytoscape-elk';
 import { ReactionsData } from '../../../interfaces/types';
 import { fetchReactions } from '../../../API/fetch/reactions';
 import { VisualEdge, VisualNode } from '../../../interfaces/sketch';
@@ -13,7 +15,9 @@ const Cytoscape = () => {
   const [cy, setCy] = useState<cytoscape.Core>();
 
   cytoscape.use(dagre);
-
+  cytoscape.use(klay);
+  cytoscape.use(elk);
+  cytoscape.use(cola);
 
 
   useEffect(() => {
@@ -50,28 +54,29 @@ const Cytoscape = () => {
             style: {
               'background-color': 'data(color)',
               'label': 'data(label)',
-              'width': '40px',
-              'height': '40px',
+              'width': '160px',
+              'height': '160px',
               'text-valign': 'center',
-              'text-halign': 'center'
+              'text-halign': 'center',
+              'font-size': 50
             }
           },
           {
             selector: 'edge',
             style: {
-              'width': 4,
+              'width': 8,
               'line-color': 'data(color)',
               'target-arrow-color': 'data(color)',
               'target-arrow-shape': 'triangle',
               'curve-style': 'bezier',
-              'arrow-scale': 1.5, // Adjust the size of the arrowhead as needed
+              'arrow-scale': 2.5, // Adjust the size of the arrowhead as needed
               'control-point-step-size': 20, // Adjusts the curve's steepness, may need tweaking based on layout
-              'target-distance-from-node': 2 // Adjusts the distance from the target node to the arrowhead
+              'target-distance-from-node': 4 // Adjusts the distance from the target node to the arrowhead
             }
           }
         ],
         layout: {
-          name: 'dagre'
+          name: 'elk'
         }
       });
 
