@@ -9,8 +9,6 @@ import IconButton from '@mui/material/IconButton';
 import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
 import MenuTextField from './textFields/menuTextField';
-import axios from 'axios'; 
-
 
 interface MenuProps {
     inputNodes: string;
@@ -26,47 +24,9 @@ interface MenuProps {
 
 const Menu: React.FC<MenuProps> = ({ inputNodes, setInputNodes, inputReactions, setInputReactions, setTriggerUpdate, availableMetabolites, availableReactions }) => {
     // State to manage dynamic metabolitos inputs
-    const [metabolites, setMetabolites] = useState<string[]>(['']);
-    const [reactions, setReactions] = useState<string[]>(['']); 
-
-    const [selectedFile, setSelectedFile] = useState<File | null>(null);
-    const [uploadStatus, setUploadStatus] = useState<string>('');
-
-    // Handle file input change
-    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        if (event.target.files && event.target.files.length > 0) {
-            setSelectedFile(event.target.files[0]);
-        }
-    };
-
-    // Handle file upload
-    const handleFileUpload = async () => {
-        if (!selectedFile) {
-            setUploadStatus('Please select a file first.');
-            return;
-        }
-
-        const formData = new FormData();
-        formData.append('file', selectedFile);
-
-        try {
-            // Make the POST request to upload the file
-            const response = await axios.post('http://localhost:8080/upload', formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                },
-            });
-
-            // Handle success
-            setUploadStatus('File uploaded successfully.');
-            console.log('Response:', response.data);
-
-        } catch (error) {
-            // Handle error
-            setUploadStatus('File upload failed.');
-            console.error('Error uploading file:', error);
-        }
-    };
+    const [metabolites, setMetabolites] = useState<string[]>(['']); // Initially, one input field
+    // State to manage dynamic reactions inputs
+    const [reactions, setReactions] = useState<string[]>(['']); // Initially, one input field
 
     console.log('availablemetabolites Inside Menu:', availableMetabolites)
 
@@ -229,8 +189,6 @@ const Menu: React.FC<MenuProps> = ({ inputNodes, setInputNodes, inputReactions, 
             >
                 Draw
             </Button>
-
-            
         </Container>
     );
 };
