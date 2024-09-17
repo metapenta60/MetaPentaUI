@@ -22,15 +22,10 @@ const Cytoscape: React.FC<CytoscapeProps> = ({ inputNodes, inputReactions, trigg
   const [visualData, setVisualData] = useState<{ nodes: VisualNode[]; edges: VisualEdge[] }>({ nodes: [], edges: [] });
   const [cy, setCy] = useState<cytoscape.Core>();
 
-
-
-  
-
   cytoscape.use(dagre);
   cytoscape.use(klay);
   cytoscape.use(elk);
   cytoscape.use(cola);
-
 
   useEffect(() => {
     if (triggerUpdate) {

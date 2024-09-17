@@ -1,16 +1,16 @@
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 import DrawIcon from '@mui/icons-material/Draw';
+import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
 import Button from '@mui/material/Button';
+import IconButton from '@mui/material/IconButton';
 import Container from '@mui/material/Container';
-import FileUpload from '../fileUpload/fileUpload';
-import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
-import P5 from '../../pages/Website/p5/p5';
-import Cytoscape from "../../pages/Website/cytoscape/cytoscape";
-import {useLocation} from "react-router-dom";
 import MenuTextField from './textFields/menuTextField';
+import axios from 'axios'; 
+
 
 interface MenuProps {
     inputNodes: string;
@@ -19,19 +19,97 @@ interface MenuProps {
     setInputReactions: (value: string) => void;
     triggerUpdate: boolean;
     setTriggerUpdate: (value: boolean) => void;
-}
-const Menu: React.FC<MenuProps> = ({ inputNodes, setInputNodes, inputReactions, setInputReactions, setTriggerUpdate }) => {
-    
+    availableMetabolites: string[]
+    availableReactions: string[]
 
-    const handleInputNodes = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setInputNodes(event.target.value);
+}
+
+const Menu: React.FC<MenuProps> = ({ inputNodes, setInputNodes, inputReactions, setInputReactions, setTriggerUpdate, availableMetabolites, availableReactions }) => {
+    // State to manage dynamic metabolitos inputs
+    const [metabolites, setMetabolites] = useState<string[]>(['']);
+    const [reactions, setReactions] = useState<string[]>(['']); 
+
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const [uploadStatus, setUploadStatus] = useState<string>('');
+
+    // Handle file input change
+    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        if (event.target.files && event.target.files.length > 0) {
+            setSelectedFile(event.target.files[0]);
+        }
     };
 
-    const handleInputReactions = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setInputReactions(event.target.value);
+    // Handle file upload
+    const handleFileUpload = async () => {
+        if (!selectedFile) {
+            setUploadStatus('Please select a file first.');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('file', selectedFile);
+
+        try {
+            // Make the POST request to upload the file
+            const response = await axios.post('http://localhost:8080/upload', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
+
+            // Handle success
+            setUploadStatus('File uploaded successfully.');
+            console.log('Response:', response.data);
+
+        } catch (error) {
+            // Handle error
+            setUploadStatus('File upload failed.');
+            console.error('Error uploading file:', error);
+        }
+    };
+
+    console.log('availablemetabolites Inside Menu:', availableMetabolites)
+
+    // Handle dynamic input change for metabolites
+    const handleMetaboliteChange = (index: number, value: string) => {
+        const updatedMetabolites = [...metabolites];
+        updatedMetabolites[index] = value;
+        setMetabolites(updatedMetabolites);
+    };
+
+    // Add a new metabolite input field
+    const addMetaboliteField = () => {
+        setMetabolites([...metabolites, '']); // Add a new empty input at the end
+    };
+
+    // Remove a metabolite input field
+    const removeMetaboliteField = (index: number) => {
+        const updatedMetabolites = metabolites.filter((_, i) => i !== index);
+        setMetabolites(updatedMetabolites);
+    };
+
+    // Handle dynamic input change for reactions
+    const handleReactionChange = (index: number, value: string) => {
+        const updatedReactions = [...reactions];
+        updatedReactions[index] = value;
+        setReactions(updatedReactions);
+    };
+
+    // Add a new reaction input field
+    const addReactionField = () => {
+        setReactions([...reactions, '']); // Add a new empty input at the end
+    };
+
+    // Remove a reaction input field
+    const removeReactionField = (index: number) => {
+        const updatedReactions = reactions.filter((_, i) => i !== index);
+        setReactions(updatedReactions);
     };
 
     const handleDraw = () => {
+        // Convert the metabolites and reactions arrays into comma-separated strings and pass them to inputNodes and inputReactions
+        setInputNodes(metabolites.join(','));
+        setInputReactions(reactions.join(','));
         setTriggerUpdate(true);
     };
 
@@ -40,69 +118,119 @@ const Menu: React.FC<MenuProps> = ({ inputNodes, setInputNodes, inputReactions, 
             sx={{
                 padding: 2,
                 display: 'flex',
-                flexDirection: 'column', // Stack items vertically
-                alignItems: 'stretch',   // Make sure items take full width
-                gap: 2,                  // Add spacing between items
+                flexDirection: 'column',
+                alignItems: 'stretch',
+                gap: 2,
             }}
         >
             <Typography variant="h4" align="center" gutterBottom>
                 MetaPeNTA
             </Typography>
 
+            {/* Dynamic Metabolites Fields */}
             <Grid container direction="column" spacing={2}>
-                <Grid item>
-                    <MenuTextField
-                        label="Metabolitos"
-                        value={inputNodes}
-                        onChange={handleInputNodes}
-                        placeholder="metabolito1, metabolito2, metabolito3"
-                    />
-                    <Button
-                        fullWidth
-                        variant="contained"
-                        endIcon={<DrawIcon />}
-                        sx={{ backgroundColor: 'green', color: 'white', '&:hover': { backgroundColor: 'lightgreen' } }}
-                        onClick={handleDraw}
-                    >
-                        Dibujar Metabolitos
-                    </Button>
-                </Grid>
+                <Typography variant="h6" color="black">Draw Metabolites</Typography>
+                {metabolites.map((metabolite, index) => (
+                    <Grid item key={index}>
+                        <Box display="flex" alignItems="center">
+                            <MenuTextField
+                                label={`Metabolito ${index + 1}`}
+                                value={metabolite}
+                                onChange={(e, newValue) => handleMetaboliteChange(index, newValue || e?.target.value || '')} // Handle both event and Autocomplete change
+                                placeholder={`metabolito ${index + 1}`}
+                                options={availableMetabolites}  // Provide list of available metabolites
+                            />
+                            <Box ml={1}>
+                                {/* Remove Metabolite Button */}
+                                <IconButton
+                                    color="secondary"
+                                    onClick={() => removeMetaboliteField(index)}
+                                    aria-label="remove metabolito"
+                                    disabled={metabolites.length === 1} // Prevent removing the last field
+                                >
+                                    <DeleteOutlineIcon />
+                                </IconButton>
 
-                <Grid item>
-                    <MenuTextField
-                        label="Reacciones"
-                        value={inputReactions}
-                        onChange={handleInputReactions}
-                        placeholder="reacción1, reacción2, reacción3"
-                    />
-                    <Button
-                        fullWidth
-                        variant="contained"
-                        endIcon={<DrawIcon />}
-                        sx={{ backgroundColor: 'green', color: 'white', '&:hover': { backgroundColor: 'lightgreen' } }}
-                        onClick={handleDraw}
-                    >
-                        Dibujar Reacciones
-                    </Button>
-                </Grid>
-
-                <Grid item>
-                    <MenuTextField
-                        label="Req3"
-                        value=""
-                        onChange={undefined}
-                        placeholder="req3, req3, req3"
-                    />
-                    <Button
-                        fullWidth
-                        variant="contained"
-                        endIcon={<DrawIcon />}
-                        sx={{ backgroundColor: 'green', color: 'white', '&:hover': { backgroundColor: 'lightgreen' } }}
-                    >
-                        Req3
-                    </Button>
-                </Grid>
+                                {/* Add Metabolite Button (only on the last field) */}
+                                {index === metabolites.length - 1 && (
+                                    <IconButton
+                                        color="primary"
+                                        onClick={addMetaboliteField}
+                                        aria-label="add metabolito"
+                                    >
+                                        <AddCircleOutlineIcon />
+                                    </IconButton>
+                                )}
+                            </Box>
+                        </Box>
+                    </Grid>
+                ))}
             </Grid>
+
+            {/* Button to trigger drawing */}
+            <Button
+                fullWidth
+                variant="contained"
+                endIcon={<DrawIcon />}
+                sx={{ backgroundColor: 'green', color: 'white', '&:hover': { backgroundColor: 'lightgreen' } }}
+                onClick={handleDraw}
+            >
+                Draw
+            </Button>
+            <br/>
+            <br/>
+            {/* Dynamic Reactions Fields */}
+            
+
+            <Grid container direction="column" spacing={1}>
+            <Typography variant="h6" color="black">Draw Reactions</Typography>
+                {reactions.map((reaction, index) => (
+                    <Grid item key={index}>
+                        <Box display="flex" alignItems="center">
+                            <MenuTextField
+                                label={`Reacción ${index + 1}`}
+                                value={reaction}
+                                onChange={(e, newValue) => handleReactionChange(index, newValue || e?.target.value || '')}
+                                placeholder={`reacción ${index + 1}`}
+                                options={availableReactions}
+                            />
+                            <Box ml={1}>
+                                {/* Remove Reaction Button */}
+                                <IconButton
+                                    color="secondary"
+                                    onClick={() => removeReactionField(index)}
+                                    aria-label="remove reacción"
+                                    disabled={reactions.length === 1} // Prevent removing the last field
+                                >
+                                    <DeleteOutlineIcon />
+                                </IconButton>
+
+                                {/* Add Reaction Button (only on the last field) */}
+                                {index === reactions.length - 1 && (
+                                    <IconButton
+                                        color="primary"
+                                        onClick={addReactionField}
+                                        aria-label="add reacción"
+                                    >
+                                        <AddCircleOutlineIcon />
+                                    </IconButton>
+                                )}
+                            </Box>
+                        </Box>
+                    </Grid>
+                ))}
+            </Grid>
+            <Button
+                fullWidth
+                variant="contained"
+                endIcon={<DrawIcon />}
+                sx={{ backgroundColor: 'green', color: 'white', '&:hover': { backgroundColor: 'lightgreen' } }}
+                onClick={handleDraw}
+            >
+                Draw
+            </Button>
+
+            
         </Container>
     );
 };
