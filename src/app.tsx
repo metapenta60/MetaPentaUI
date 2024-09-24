@@ -3,7 +3,7 @@ import "./assets/fonts/Barlow-SemiBold.ttf";
 import '../node_modules/bootstrap/dist/css/bootstrap.min.css';
 import Menu from "./components/ui/menu";
 import React, { useState, useMemo, useEffect } from 'react';
-import { Box, Button, createTheme, Drawer, PaletteMode, ThemeProvider, Toolbar, AppBar, Typography, IconButton } from "@mui/material";
+import { Box, Button, createTheme, Drawer, PaletteMode, ThemeProvider, Toolbar, AppBar, Typography, IconButton, Container } from "@mui/material";
 import MenuIcon from '@mui/icons-material/Menu';
 import Cytoscape from './pages/Website/cytoscape/cytoscape';
 import { fetchReactions } from './API/fetch/reactions';
@@ -25,26 +25,26 @@ function App() {
   const [reactions, setReactions] = useState<string[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [formData, setFormData] = useState<FormData | null>(null);
 
   // Upload file and send POST request to /upload endpoint
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    const formData = new FormData();
-    formData.append('file', file); // The key name 'file' must match what is expected on the backend
+    const newFormData = new FormData();
+    newFormData.append('file', file); // The key 'file' must match what is expected on the backend
+    setFormData(newFormData); // Store the FormData in state for reuse
 
     try {
       // Sending POST request to the backend to upload the file
-      const response = await axios.post('http://localhost:8080/upload', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
+      const response = await axios.post('http://localhost:8080/upload', newFormData, {
+        headers: {},
       });
 
       // Update the metabolites and reactions after the file is uploaded successfully
       const data: ReactionsData = response.data;
-
+      console.log('Metabolites:', data.metabolites);
       // Extract metabolites and reactions into arrays
       const metabolitesArray = Array.from(new Set(Object.values(data.metabolites).map(metabolite => metabolite.name)));
       const reactionsArray = Array.from(new Set(Object.values(data.reactions).map(reaction => reaction.name)));
@@ -61,12 +61,16 @@ function App() {
 
   useEffect(() => {
     const loadData = async () => {
+      if (!formData) return;  // Only proceed if formData is available
+      
       try {
-        const data: ReactionsData = await fetchReactions();
-
+        const data: ReactionsData = await fetchReactions(formData);
+  
         const metabolitesArray = Array.from(new Set(Object.values(data.metabolites).map(metabolite => metabolite.name)));
         const reactionsArray = Array.from(new Set(Object.values(data.reactions).map(reaction => reaction.name)));
-
+  
+        console.log('Metabolites:', metabolitesArray);
+        console.log('Reactions:', reactionsArray);
         setMetabolites(metabolitesArray);
         setReactions(reactionsArray);
         setLoading(false);
@@ -76,12 +80,14 @@ function App() {
         setLoading(false);
       }
     };
+  
+    if (triggerUpdate && formData) {
+      loadData();  // Fetch data when formData is available and triggerUpdate is true
+    }
+  }, [triggerUpdate, formData]);  // Add formData as a dependency
 
-    loadData();  // Fetch initial data at the start of the app
-  }, []);
-
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error}</div>;
+  // if (loading) return <div>Loading...</div>;
+  // if (error) return <div>Error: {error}</div>;
 
   const theme = createTheme({
     palette: {
@@ -122,7 +128,7 @@ function App() {
           {/* File upload button */}
           <input
             type="file"
-            accept=".json"
+            accept=".xml"
             style={{ display: 'none' }}
             id="file-upload"
             onChange={handleFileUpload}
@@ -167,15 +173,16 @@ function App() {
         </Box>
       </Drawer>
 
-      <div className="mt-20 p-4">
+      <Container className="mt-20 p-4">
         <Cytoscape
           inputNodes={inputNodes}
           inputReactions={inputReactions}
           triggerUpdate={triggerUpdate}
           setTriggerUpdate={setTriggerUpdate}
           layoutName={layoutName}
+          formData={formData}
         />
-      </div>
+      </Container>
     </ThemeProvider>
   );
 }

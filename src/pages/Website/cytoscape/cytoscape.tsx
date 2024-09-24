@@ -16,9 +16,11 @@ interface CytoscapeProps {
   triggerUpdate: boolean;
   setTriggerUpdate: (value: boolean) => void;
   layoutName: string;
+  formData: FormData | null;
 }
 
-const Cytoscape: React.FC<CytoscapeProps> = ({ inputNodes, inputReactions, triggerUpdate, setTriggerUpdate, layoutName }) => {
+const Cytoscape: React.FC<CytoscapeProps> = ({ inputNodes, inputReactions,
+   triggerUpdate, setTriggerUpdate, layoutName, formData }) => {
   const [visualData, setVisualData] = useState<{ nodes: VisualNode[]; edges: VisualEdge[] }>({ nodes: [], edges: [] });
   const [cy, setCy] = useState<cytoscape.Core>();
 
@@ -27,11 +29,15 @@ const Cytoscape: React.FC<CytoscapeProps> = ({ inputNodes, inputReactions, trigg
   cytoscape.use(elk);
   cytoscape.use(cola);
 
+  console.log("format data: ", formData);
   useEffect(() => {
     if (triggerUpdate) {
         const loadData = async () => {
+          if (!formData) return; // Exit early if formData is null
             try {
-                const data = await fetchReactions();
+              const data = await fetchReactions(formData);
+
+
                 console.log(data);
                 let initialVisualData = transformToVisualData(data);
                 
@@ -44,8 +50,9 @@ const Cytoscape: React.FC<CytoscapeProps> = ({ inputNodes, inputReactions, trigg
                     console.log("Filtering reactions for:", inputReactions);
                     initialVisualData = filterVisualData(initialVisualData, inputReactions, 'reactions');
                 }
-
+                
                 setVisualData(initialVisualData);
+                console.log("Initial visual data:", initialVisualData);
             } catch (error) {
                 console.error("Failed to fetch data:", error);
             } finally {
@@ -55,7 +62,7 @@ const Cytoscape: React.FC<CytoscapeProps> = ({ inputNodes, inputReactions, trigg
 
         loadData();
     }
-}, [triggerUpdate, inputNodes, inputReactions, setTriggerUpdate]); // Dependencies include all relevant variables
+}, [triggerUpdate,formData, inputNodes, inputReactions, setTriggerUpdate]); // Dependencies include all relevant variables
 
  // Define layout options with more separation
  const getLayoutOptions = (layoutName: string) => {

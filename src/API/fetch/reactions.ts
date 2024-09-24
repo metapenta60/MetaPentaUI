@@ -1,14 +1,14 @@
 import {ReactionsData} from "../../interfaces/types";
+import axios from 'axios';
 
-
-const fetchReactions = async (): Promise<ReactionsData> => {
+const fetchReactions = async (formData: FormData): Promise<ReactionsData> => {
     try {
-        const response = await fetch('http://localhost:8080/e_coli_core.json'); // Adjusted to .json endpoint
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
-        }
-        const data: ReactionsData = await response.json();
-        // If the JSON structure directly matches your interface, no further transformation is needed
+        const response = await axios.post('http://localhost:8080/upload', formData, {
+            headers: {},
+          }); 
+        
+        const data: ReactionsData = response.data;
+
         return data;
     } catch (error) {
         console.error("Failed to fetch reactions:", error);

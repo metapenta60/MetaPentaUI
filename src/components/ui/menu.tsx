@@ -28,7 +28,7 @@ const Menu: React.FC<MenuProps> = ({ inputNodes, setInputNodes, inputReactions, 
     // State to manage dynamic reactions inputs
     const [reactions, setReactions] = useState<string[]>(['']); // Initially, one input field
 
-    console.log('availablemetabolites Inside Menu:', availableMetabolites)
+    // console.log('availablemetabolites Inside Menu:', availableMetabolites)
 
     // Handle dynamic input change for metabolites
     const handleMetaboliteChange = (index: number, value: string) => {
