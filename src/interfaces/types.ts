@@ -27,11 +27,28 @@ interface ReactionsData {
     metabolites: MetaboliteDetail[]; // Assuming a structure for metabolites if they were to be listed separately
 }
 
+interface AppReactionsData {
+    metabolites: Record<string, any>;
+    reactions: Record<string, any>;
+  }
+
+  interface MenuProps {
+    inputNodes: string;
+    setInputNodes: (value: string) => void;
+    inputReactions: string;
+    setInputReactions: (value: string) => void;
+    triggerUpdate: boolean;
+    setTriggerUpdate: (value: boolean) => void;
+    availableMetabolites: string[]
+    availableReactions: string[]
+    onProcessModel: (data: ReactionsData) => void;  
+    currentModel: string;
+
+
+}
 
 
 
 
 
-
-
-export { Reaction, ReactionsData };
+export { Reaction, ReactionsData, MetaboliteDetail, AppReactionsData, MenuProps };

@@ -1,93 +1,38 @@
 import './App.css';
-import "./assets/fonts/Barlow-SemiBold.ttf";
 import '../node_modules/bootstrap/dist/css/bootstrap.min.css';
-import Menu from "./components/ui/menu";
-import React, { useState, useMemo, useEffect } from 'react';
-import { Box, Button, createTheme, Drawer, PaletteMode, ThemeProvider, Toolbar, AppBar, Typography, IconButton, Container } from "@mui/material";
-import MenuIcon from '@mui/icons-material/Menu';
-import Cytoscape from './pages/Website/cytoscape/cytoscape';
-import { fetchReactions } from './API/fetch/reactions';
-import axios from 'axios';
+import Menu from "./components/menu";
+import React, { useState, useEffect } from 'react';
+import { Box, createTheme, Drawer, PaletteMode, ThemeProvider, Container } from "@mui/material";
+import Cytoscape from './components/cytoscape/cytoscape';
+import { ReactionsData } from 'interfaces/types';
+import { handleFileUpload } from './utils/fileUploadHandler';
+import { handleProcessModelData } from './utils/processBiggModelDataHandler';
+import { fileLoader } from './utils/fileLoader';
+import AppHeader from './components/appHeader';
 
-interface ReactionsData {
-  metabolites: Record<string, any>;
-  reactions: Record<string, any>;
-}
 
 function App() {
   const [mode, setMode] = useState<PaletteMode>('dark');
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [layoutName, setLayoutName] = useState<string>('elk');
   const [inputNodes, setInputNodes] = useState<string>('');
   const [inputReactions, setInputReactions] = useState<string>('');
   const [triggerUpdate, setTriggerUpdate] = useState(true);
-  const [layoutName, setLayoutName] = useState<string>('elk');
   const [metabolites, setMetabolites] = useState<string[]>([]);
   const [reactions, setReactions] = useState<string[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState<FormData | null>(null);
+  const [bigModel,setBigModel] = useState<ReactionsData | null>(null);
+  const [currentModel, setCurrentModel] = useState<string>('');
 
-  // Upload file and send POST request to /upload endpoint
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    const newFormData = new FormData();
-    newFormData.append('file', file); // The key 'file' must match what is expected on the backend
-    setFormData(newFormData); // Store the FormData in state for reuse
-
-    try {
-      // Sending POST request to the backend to upload the file
-      const response = await axios.post('http://localhost:8080/upload', newFormData, {
-        headers: {},
-      });
-
-      // Update the metabolites and reactions after the file is uploaded successfully
-      const data: ReactionsData = response.data;
-      console.log('Metabolites:', data.metabolites);
-      // Extract metabolites and reactions into arrays
-      const metabolitesArray = Array.from(new Set(Object.values(data.metabolites).map(metabolite => metabolite.name)));
-      const reactionsArray = Array.from(new Set(Object.values(data.reactions).map(reaction => reaction.name)));
-
-      setMetabolites(metabolitesArray);
-      setReactions(reactionsArray);
-      setTriggerUpdate(true); // Trigger update to re-render Cytoscape with new data
-
-    } catch (error) {
-      console.error("Error uploading file:", error);
-      setError('Failed to upload and process the file');
-    }
-  };
+  
 
   useEffect(() => {
-    const loadData = async () => {
-      if (!formData) return;  // Only proceed if formData is available
-      
-      try {
-        const data: ReactionsData = await fetchReactions(formData);
-  
-        const metabolitesArray = Array.from(new Set(Object.values(data.metabolites).map(metabolite => metabolite.name)));
-        const reactionsArray = Array.from(new Set(Object.values(data.reactions).map(reaction => reaction.name)));
-  
-        console.log('Metabolites:', metabolitesArray);
-        console.log('Reactions:', reactionsArray);
-        setMetabolites(metabolitesArray);
-        setReactions(reactionsArray);
-        setLoading(false);
-      } catch (err) {
-        console.error('Error fetching data:', err);
-        setError('Failed to load data');
-        setLoading(false);
-      }
-    };
-  
     if (triggerUpdate && formData) {
-      loadData();  // Fetch data when formData is available and triggerUpdate is true
+      fileLoader(formData, setMetabolites, setReactions, setLoading, setError);
     }
-  }, [triggerUpdate, formData]);  // Add formData as a dependency
-
-  // if (loading) return <div>Loading...</div>;
-  // if (error) return <div>Error: {error}</div>;
+  }, [triggerUpdate, formData]); 
 
   const theme = createTheme({
     palette: {
@@ -110,36 +55,21 @@ function App() {
 
   return (
     <ThemeProvider theme={theme}>
-      <AppBar position="fixed" className="bg-blue-600" style={{ zIndex: 1301 }}>
-        <Toolbar>
-          <IconButton edge="start" color="inherit" aria-label="menu" onClick={handleDrawerOpen}>
-            <MenuIcon />
-          </IconButton>
-          <Typography variant="h6" sx={{ flexGrow: 1 }}>
-            Metapenta
-          </Typography>
-
-          {/* Layout change buttons */}
-          <Button color="inherit" onClick={() => handleLayoutChange('elk')}>ELK Layout</Button>
-          <Button color="inherit" onClick={() => handleLayoutChange('dagre')}>Dagre Layout</Button>
-          <Button color="inherit" onClick={() => handleLayoutChange('cola')}>Cola Layout</Button>
-          <Button color="inherit" onClick={() => handleLayoutChange('klay')}>Klay Layout</Button>
-
-          {/* File upload button */}
-          <input
-            type="file"
-            accept=".xml"
-            style={{ display: 'none' }}
-            id="file-upload"
-            onChange={handleFileUpload}
-          />
-          <label htmlFor="file-upload">
-            <Button color="inherit" component="span">
-              Upload File
-            </Button>
-          </label>
-        </Toolbar>
-      </AppBar>
+      <AppHeader
+        handleDrawerOpen={handleDrawerOpen}
+        handleLayoutChange={handleLayoutChange}
+        handleFileUpload={(event) => 
+          handleFileUpload(
+            event, 
+            setFormData, 
+            setMetabolites, 
+            setReactions, 
+            setBigModel, 
+            setCurrentModel, 
+            setTriggerUpdate, 
+            setError
+          )}
+      />
 
       <Drawer
         anchor="left"
@@ -169,6 +99,15 @@ function App() {
             setTriggerUpdate={setTriggerUpdate}
             availableMetabolites={metabolites}
             availableReactions={reactions}
+            onProcessModel={(data: ReactionsData) => 
+              handleProcessModelData(
+                data, 
+                setBigModel, 
+                setMetabolites, 
+                setReactions, 
+                setTriggerUpdate
+              )}      
+            currentModel={currentModel}
           />
         </Box>
       </Drawer>
@@ -181,6 +120,7 @@ function App() {
           setTriggerUpdate={setTriggerUpdate}
           layoutName={layoutName}
           formData={formData}
+          bigModel={bigModel}
         />
       </Container>
     </ThemeProvider>
