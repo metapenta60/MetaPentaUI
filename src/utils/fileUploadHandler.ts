@@ -6,8 +6,8 @@ import React from 'react';
 export const handleFileUpload = async (
   event: React.ChangeEvent<HTMLInputElement>,
   setFormData: React.Dispatch<React.SetStateAction<FormData | null>>,
-  setMetabolites: React.Dispatch<React.SetStateAction<string[]>>,
-  setReactions: React.Dispatch<React.SetStateAction<string[]>>,
+  setMetabolites: React.Dispatch<React.SetStateAction<{ id: string; name: string }[]>>,
+  setReactions: React.Dispatch<React.SetStateAction<{ id: string; name: string }[]>>,
   setBigModel: React.Dispatch<React.SetStateAction<ReactionsData | null>>,
   setCurrentModel: React.Dispatch<React.SetStateAction<string>>,
   setTriggerUpdate: React.Dispatch<React.SetStateAction<boolean>>,
@@ -26,8 +26,19 @@ export const handleFileUpload = async (
     const data: AppReactionsData = response.data;
     console.log('Metabolites:', data.metabolites);
 
-    const metabolitesArray = Array.from(new Set(Object.values(data.metabolites).map(metabolite => metabolite.name)));
-    const reactionsArray = Array.from(new Set(Object.values(data.reactions).map(reaction => reaction.name)));
+    // Remove duplicates from metabolites
+    const metabolitesArray = Array.from(
+      new Map(
+        Object.values(data.metabolites).map(metabolite => [metabolite.id, { id: metabolite.id, name: metabolite.name }])
+      ).values()
+    );
+
+    // Remove duplicates from reactions
+    const reactionsArray = Array.from(
+      new Map(
+        Object.values(data.reactions).map(reaction => [reaction.id, { id: reaction.id, name: reaction.name }])
+      ).values()
+    );
 
     setMetabolites(metabolitesArray);
     setReactions(reactionsArray);

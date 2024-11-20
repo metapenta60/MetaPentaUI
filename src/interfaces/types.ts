@@ -39,9 +39,9 @@ interface AppReactionsData {
     setInputReactions: (value: string) => void;
     triggerUpdate: boolean;
     setTriggerUpdate: (value: boolean) => void;
-    availableMetabolites: string[]
-    availableReactions: string[]
-    onProcessModel: (data: ReactionsData) => void;  
+    availableMetabolites: { id: string; name: string }[];
+    availableReactions: { id: string; name: string }[];
+    onProcessModel: (data: ReactionsData) => void;
     currentModel: string;
 
 

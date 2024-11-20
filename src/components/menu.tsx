@@ -12,6 +12,7 @@ import MenuTextField from './textFields/menuTextField';
 import useFetchModels from '../API/fetch/fetchBiggModels';
 import { MenuProps } from '../interfaces/types';
 import { handleProcessModel } from '../utils/processBiggModelDataHandler';
+import axios from 'axios';
 
 
 
@@ -26,7 +27,81 @@ const Menu: React.FC<MenuProps> = ({ inputNodes, setInputNodes, inputReactions, 
     const [targetMetabolite, setTargetMetabolite] = useState<string>(''); 
     const [processingResult, setProcessingResult] = useState<any>(null);
     const [processingError, setProcessingError] = useState<string | null>(null);
-    
+    const [originId, setOriginId] = useState<string>('');
+    const [destinationId, setDestinationId] = useState<string>('');
+    const [path, setPath] = useState<string[]>([]);
+
+    console.log("SelectedModel:",selectedModel);
+
+    const handleOriginIdChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | null, newValue?: string) => {
+        const selectedMetabolite = availableMetabolites.find(metabolite => `${metabolite.name} - ${metabolite.id}` === newValue);
+        if (selectedMetabolite) {
+            console.log(`selectedOriginMetabolite: ${selectedMetabolite.id}`);
+            setOriginId(selectedMetabolite.id); // Set the `id` as the value
+        }
+        
+    };
+
+    // Handle destinationId change
+    const handleDestinationIdChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | null, newValue?: string) => {
+        const selectedMetabolite = availableMetabolites.find(metabolite => `${metabolite.name} - ${metabolite.id}` === newValue);
+        if (selectedMetabolite) {
+            console.log(`selectedDestinyMetabolite: ${selectedMetabolite.id}`);
+            setDestinationId(selectedMetabolite.id); // Set the `id` as the value
+        }
+    };
+
+    // Handle shortest path calculation
+    const handleShortestPath = async () => {
+        try {
+            console.log("Origin ID selected:", originId);
+            console.log("Destination ID selected:", destinationId);
+        
+            if (!selectedModel) {
+                console.error("No model selected. Please select a model first.");
+                return;
+            }
+        
+            // Step 1: Fetch the file from the download endpoint
+            const fileResponse = await axios.get(`http://localhost:8080/bigg/models/${selectedModel}/download`, {
+                responseType: "blob", // Ensures the response is treated as a file
+            });
+            console.log("This is the downloaded model.",fileResponse);
+        
+            const fileBlob = fileResponse.data;
+        
+            // Step 2: Create a FormData object and append the file and parameters
+            const formData = new FormData();
+            formData.append("file", new File([fileBlob], `${selectedModel}.xml`)); // Convert the Blob into a File
+            formData.append("originId", originId);
+            formData.append("destinationId", destinationId);
+        
+            // Step 3: Send the POST request
+            const response = await axios.post("http://localhost:8080/metabolite/shortest-path", formData, {
+                headers: {
+                "Content-Type": "multipart/form-data", // Required for FormData
+                },
+            });
+        
+            const reactionIds = response.data.path; // Assuming `path` contains the reaction IDs
+            console.log("Shortest path reaction IDs:", reactionIds);
+
+            // Map reaction IDs to their names using availableReactions
+            const reactionNames = reactionIds.map((id) => {
+                const reaction = availableReactions.find((reaction) => reaction.id === id);
+                return reaction ? reaction.name : id; // Use ID as fallback if name is not found
+            });
+
+            console.log("Mapped reaction names:", reactionNames);
+
+            // Set reactions for drawing
+            setReactions(reactionNames);
+            setInputReactions(reactionNames.join(","));
+            setTriggerUpdate(true);
+        } catch (error) {
+          console.error("Error calculating shortest path:", error);
+        }
+      };
 
     const handleModelChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | null, newValue?: string) => {
         const model = models.find((m) => `${m.bigg_id} - ${m.organism}` === newValue);
@@ -145,7 +220,7 @@ const Menu: React.FC<MenuProps> = ({ inputNodes, setInputNodes, inputReactions, 
                                 value={metabolite}
                                 onChange={(e, newValue) => handleMetaboliteChange(index, newValue || e?.target.value || '')} // Handle both event and Autocomplete change
                                 placeholder={`metabolito ${index + 1}`}
-                                options={availableMetabolites}  // Provide list of available metabolites
+                                options={[...new Set(availableMetabolites.map(metabolite => metabolite.name))]}
                             />
                             <Box ml={1}>
                                 {/* Remove Metabolite Button */}
@@ -198,7 +273,7 @@ const Menu: React.FC<MenuProps> = ({ inputNodes, setInputNodes, inputReactions, 
                                 value={reaction}
                                 onChange={(e, newValue) => handleReactionChange(index, newValue || e?.target.value || '')}
                                 placeholder={`reacción ${index + 1}`}
-                                options={availableReactions}
+                                options={[...new Set(availableMetabolites.map(metabolite => metabolite.name))]}
                             />
                             <Box ml={1}>
                                 {/* Remove Reaction Button */}
@@ -237,26 +312,37 @@ const Menu: React.FC<MenuProps> = ({ inputNodes, setInputNodes, inputReactions, 
             </Button>
             <br />
             <Grid container direction="column" spacing={1}>
-                <Typography variant="h6" color="black">Target Metabolite</Typography>
+                <Typography variant="h6" color="black">Shortest Path</Typography>
                 <Grid item>
-                    <Box display="flex" flexDirection="column" alignItems="stretch"> {/* Changed to column layout */}
-                        <MenuTextField
-                            label="Target"
-                            value={targetMetabolite}
-                            onChange={(e, newValue) => handleTargetMetaboliteChange(e, newValue)}
-                            placeholder="Enter target metabolite"
-                            options={availableMetabolites}  
-                        />
-                        <Button
-                            fullWidth
-                            variant="contained"
-                            endIcon={<DrawIcon />}
-                            sx={{ marginTop: 2, backgroundColor: 'green', color: 'white', '&:hover': { backgroundColor: 'lightgreen' } }}
-                            onClick={handleTargetAction}
-                        >
-                            Draw
-                        </Button>
-                    </Box>
+                    {/* Origin ID Field */}
+                    <MenuTextField
+                        label="Select Origin Metabolite"
+                        value={originId}
+                        onChange={handleOriginIdChange}
+                        placeholder="Type or select an origin metabolite"
+                        options={availableMetabolites.map(metabolite => `${metabolite.name} - ${metabolite.id}`)}
+                    />
+                    <br/>
+
+                    {/* Destination ID Field */}
+                    <MenuTextField
+                        label="Select Destination Metabolite"
+                        value={destinationId}
+                        onChange={handleDestinationIdChange}
+                        placeholder="Type or select a destination metabolite"
+                        options={availableMetabolites.map(metabolite => `${metabolite.name} - ${metabolite.id}`)}
+                    />
+                    <br/>
+                    {/* Button to calculate shortest path */}
+                    <Button
+                        fullWidth
+                        variant="contained"
+                        color="primary"
+                        sx={{ backgroundColor: 'green', color: 'white', '&:hover': { backgroundColor: 'lightgreen' } }}
+                        onClick={handleShortestPath}
+                    >
+                        Calculate Shortest Path
+                    </Button>
                 </Grid>
             </Grid>
 

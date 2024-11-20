@@ -18,15 +18,15 @@ function App() {
   const [inputNodes, setInputNodes] = useState<string>('');
   const [inputReactions, setInputReactions] = useState<string>('');
   const [triggerUpdate, setTriggerUpdate] = useState(true);
-  const [metabolites, setMetabolites] = useState<string[]>([]);
-  const [reactions, setReactions] = useState<string[]>([]);
+  const [metabolites, setMetabolites] = useState<{ id: string; name: string }[]>([]);
+  const [reactions, setReactions] = useState<{ id: string; name: string }[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState<FormData | null>(null);
   const [bigModel,setBigModel] = useState<ReactionsData | null>(null);
   const [currentModel, setCurrentModel] = useState<string>('');
 
-  
+  console.log("This are the current availablemetabolites",metabolites)
 
   useEffect(() => {
     if (triggerUpdate && formData) {

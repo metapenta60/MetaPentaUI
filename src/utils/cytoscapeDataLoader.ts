@@ -32,7 +32,7 @@ export const loadData = async ({
     console.log("InitialvisualDataCyToscape", initialVisualData);
     
     // Apply degree filtering
-    const degreeThreshold = 6;
+    const degreeThreshold = 7;
     let filteredVisualData = filterVisualDataByDegree(initialVisualData, degreeThreshold);
     console.log("Filtered visual data by degree:", filteredVisualData);
 
