@@ -9,7 +9,7 @@ interface MenuTextFieldProps {
   onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | null, newValue?: string) => void;
   placeholder?: string;
   rows?: number;
-  options?: string[];  // List of options for Autocomplete
+  options?: string[];  // autocomplete options
 }
 
 const MenuTextField: React.FC<MenuTextFieldProps> = ({
@@ -19,23 +19,21 @@ const MenuTextField: React.FC<MenuTextFieldProps> = ({
   onChange,
   placeholder = '',
   rows = 1,
-  options = [],  // Default to an empty array
+  options = [],  
 }) => {
   return options.length > 0 ? (
-    // Render Autocomplete if options are provided
     <Autocomplete
       freeSolo
       options={options}
       value={value}
       onInputChange={(event, newInputValue) => {
-        // Handle the case where `event` is null
         if (event === null) {
-          onChange(null, newInputValue); // Handle Autocomplete selection with no event
+          onChange(null, newInputValue); 
         } else {
           onChange(event as React.ChangeEvent<HTMLInputElement>, newInputValue);
         }
       }}
-      sx={{ width: '100%' }}  // Ensure Autocomplete takes full width
+      sx={{ width: '100%' }}  
       renderInput={(params) => (
         <TextField
           {...params}
@@ -63,7 +61,6 @@ const MenuTextField: React.FC<MenuTextFieldProps> = ({
       )}
     />
   ) : (
-    // Render standard TextField if no options are provided
     <TextField
       fullWidth
       id={id}

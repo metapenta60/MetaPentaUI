@@ -24,8 +24,6 @@ const Cytoscape: React.FC<CytoscapeProps> = ({ inputNodes, inputReactions,
   cytoscape.use(elk);
   cytoscape.use(cola);
 
-    console.log("bigModel in cy:",bigModel)
-
   useEffect(() => {
     if (triggerUpdate) {
       loadData({
@@ -37,7 +35,7 @@ const Cytoscape: React.FC<CytoscapeProps> = ({ inputNodes, inputReactions,
         setTriggerUpdate
       });
     }
-}, [triggerUpdate, formData, inputNodes, inputReactions, setTriggerUpdate]); // Dependencies include all relevant variables
+}, [triggerUpdate, formData, inputNodes, inputReactions, setTriggerUpdate]); 
 
 
 

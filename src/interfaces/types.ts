@@ -18,13 +18,13 @@ interface MetaboliteDetail {
     name: string;
     compartment: string;
     edgesOut: string[];
-    involvedInReactions: string[]; // Array of reaction IDs
+    involvedInReactions: string[]; 
 }
 
 
 interface ReactionsData {
     reactions: Reaction[];
-    metabolites: MetaboliteDetail[]; // Assuming a structure for metabolites if they were to be listed separately
+    metabolites: MetaboliteDetail[];
 }
 
 interface AppReactionsData {
@@ -43,7 +43,11 @@ interface AppReactionsData {
     availableReactions: { id: string; name: string }[];
     onProcessModel: (data: ReactionsData) => void;
     currentModel: string;
-
+    setCurrentModel: (value:string) => void;
+    bigModel: ReactionsData | null; 
+    formData: FormData | null; 
+    selectedModel: string;
+    setSelectedModel: (value: string) => void;
 
 }
 

@@ -4,31 +4,31 @@ const getLayoutOptions = (layoutName: string) => {
       case 'elk':
         return {
           name: 'elk',
-          nodeSpacing: 100, // Adjust the spacing between nodes
-          padding: 20, // Padding around the layout
+          nodeSpacing: 100, // spacing between nodes
+          padding: 20, // padding around the layout
         };
       case 'dagre':
         return {
           name: 'dagre',
-          rankSep: 100, // Vertical separation between nodes
-          edgeSep: 50,  // Separation between edges
-          nodeSep: 100, // Horizontal separation between nodes
+          rankSep: 100, // vertical separation between nodes
+          edgeSep: 50,  // separation between edges
+          nodeSep: 100, // horizontal separation between nodes
         };
       case 'cola':
         return {
           name: 'cola',
-          nodeSpacing: 200, // Spacing between nodes
-          edgeLengthVal: 150, // The length of edges
+          nodeSpacing: 200, // spacing between nodes
+          edgeLengthVal: 150, // the length of edges
         };
       case 'klay':
         return {
           name: 'klay',
-          spacing: 100, // Spacing between nodes
+          spacing: 100, // spacing between nodes
           nodeDimensionsIncludeLabels: true,
         };
       default:
         return {
-          name: 'elk', // Fallback layout
+          name: 'elk', // default layout
         };
     }
   };

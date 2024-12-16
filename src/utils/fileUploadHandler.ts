@@ -11,7 +11,8 @@ export const handleFileUpload = async (
   setBigModel: React.Dispatch<React.SetStateAction<ReactionsData | null>>,
   setCurrentModel: React.Dispatch<React.SetStateAction<string>>,
   setTriggerUpdate: React.Dispatch<React.SetStateAction<boolean>>,
-  setError: React.Dispatch<React.SetStateAction<string | null>>
+  setError: React.Dispatch<React.SetStateAction<string | null>>,
+  setSelectedModel: React.Dispatch<React.SetStateAction<string>>
 ) => {
   const file = event.target.files?.[0];
   if (!file) return;
@@ -26,14 +27,12 @@ export const handleFileUpload = async (
     const data: AppReactionsData = response.data;
     console.log('Metabolites:', data.metabolites);
 
-    // Remove duplicates from metabolites
     const metabolitesArray = Array.from(
       new Map(
         Object.values(data.metabolites).map(metabolite => [metabolite.id, { id: metabolite.id, name: metabolite.name }])
       ).values()
     );
 
-    // Remove duplicates from reactions
     const reactionsArray = Array.from(
       new Map(
         Object.values(data.reactions).map(reaction => [reaction.id, { id: reaction.id, name: reaction.name }])
@@ -42,6 +41,7 @@ export const handleFileUpload = async (
 
     setMetabolites(metabolitesArray);
     setReactions(reactionsArray);
+    setSelectedModel('');
     setBigModel(null);
     setCurrentModel('uploaded');
     setTriggerUpdate(true);

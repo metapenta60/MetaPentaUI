@@ -25,8 +25,7 @@ function App() {
   const [formData, setFormData] = useState<FormData | null>(null);
   const [bigModel,setBigModel] = useState<ReactionsData | null>(null);
   const [currentModel, setCurrentModel] = useState<string>('');
-
-  console.log("This are the current availablemetabolites",metabolites)
+  const [selectedModel, setSelectedModel] = useState<string>('');
 
   useEffect(() => {
     if (triggerUpdate && formData) {
@@ -67,8 +66,10 @@ function App() {
             setBigModel, 
             setCurrentModel, 
             setTriggerUpdate, 
-            setError
+            setError,
+            setSelectedModel
           )}
+        
       />
 
       <Drawer
@@ -108,6 +109,11 @@ function App() {
                 setTriggerUpdate
               )}      
             currentModel={currentModel}
+            setCurrentModel={setCurrentModel}
+            bigModel={bigModel}
+            formData={formData}
+            selectedModel={selectedModel}
+            setSelectedModel={setSelectedModel}
           />
         </Box>
       </Drawer>

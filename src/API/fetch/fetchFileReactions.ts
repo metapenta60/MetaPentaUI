@@ -12,7 +12,7 @@ const fetchReactions = async (formData: FormData): Promise<ReactionsData> => {
         return data;
     } catch (error) {
         console.error("Failed to fetch reactions:", error);
-        throw error; // Re-throw to allow caller to handle the error
+        throw error;
     }
 };
 

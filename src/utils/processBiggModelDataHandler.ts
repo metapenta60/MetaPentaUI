@@ -12,14 +12,12 @@ const handleProcessModelData = (
   console.log("Data in app", data);
   setBigModel(data);
 
-  // Remove duplicates from metabolites
   const metabolitesArray = Array.from(
     new Map(
       Object.values(data.metabolites).map(metabolite => [metabolite.id, { id: metabolite.id, name: metabolite.name }])
     ).values()
   );
 
-  // Remove duplicates from reactions
   const reactionsArray = Array.from(
     new Map(
       Object.values(data.reactions).map(reaction => [reaction.id, { id: reaction.id, name: reaction.name }])
@@ -29,11 +27,11 @@ const handleProcessModelData = (
   setMetabolites(metabolitesArray);
   setReactions(reactionsArray);
 
-  // Trigger update to re-render with new data
   setTriggerUpdate(true);
 };
 
 const handleProcessModel = async (
+  setCurrentModel:(value:string) => void,
   selectedModel: string,
   onProcessModel: (data: ReactionsData) => void,
   setProcessingError: React.Dispatch<React.SetStateAction<string | null>>
@@ -44,9 +42,9 @@ const handleProcessModel = async (
   }
 
   try {
-    setProcessingError(null); // Clear previous errors
+    setProcessingError(null); 
     const response = await axios.get(`http://localhost:8080/models/${selectedModel}/process`);
-    onProcessModel(response.data); // Call the parent handler with data
+    onProcessModel(response.data); 
   } catch (error) {
     console.error("Error processing model:", error);
     setProcessingError("Failed to process the model. Please try again.");

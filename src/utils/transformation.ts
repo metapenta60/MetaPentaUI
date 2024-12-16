@@ -4,10 +4,10 @@ import {Position, VisualEdge, VisualNode} from "../interfaces/sketch";
 
 
 function generatePosition(index: number, total: number, setType: 'square' | 'circle', canvasWidth: number, targetY: number): Position {
-    const margin = 50; // Horizontal margin from the canvas edges
-    const verticalSpacing = (canvasHeight * 6) / Math.max(total, 1); // avoid division by zero
-    const x = setType === 'square' ? canvasWidth / 4 : (canvasWidth / 4) * 3; // left column for squares, right for circles
-    const y = margin + (index * verticalSpacing) + verticalSpacing / 2; // adjust Y position for vertical distribution
+    const margin = 50; 
+    const verticalSpacing = (canvasHeight * 6) / Math.max(total, 1); 
+    const x = setType === 'square' ? canvasWidth / 4 : (canvasWidth / 4) * 3; 
+    const y = margin + (index * verticalSpacing) + verticalSpacing / 2; 
     return { x, y };
 }
 
@@ -27,7 +27,7 @@ function transformToVisualData(reactionsData: ReactionsData): { nodes: VisualNod
     });
 
     const totalMetabolites = uniqueMetaboliteIDs.size;
-    let metaboliteIndex = 0; // positioning metabolites
+    let metaboliteIndex = 0; 
 
     reactionsData.reactions.forEach((reaction, index) => {
         const position = generatePosition(index, reactionsData.reactions.length, 'square', canvasWidth, canvasHeight / 4);
@@ -61,14 +61,14 @@ function transformToVisualData(reactionsData: ReactionsData): { nodes: VisualNod
                     source: metaboliteId,
                     target: reaction.id,
                     weight: item.stoichiometry,
-                    color: 'green' // reactant to reaction
+                    color: 'green' 
                 });
             } else {
                 edges.push({
                     source: reaction.id,
                     target: metaboliteId,
                     weight: item.stoichiometry,
-                    color: 'black' // reaction to product
+                    color: 'black' 
                 });
             }
         });

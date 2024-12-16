@@ -14,14 +14,12 @@ export const fileLoader = async (
   try {
     const data: ReactionsData = await fetchReactions(formData);
 
-    // Remove duplicates from metabolites
     const metabolitesArray = Array.from(
       new Map(
         Object.values(data.metabolites).map(metabolite => [metabolite.id, { id: metabolite.id, name: metabolite.name }])
       ).values()
     );
 
-    // Remove duplicates from reactions
     const reactionsArray = Array.from(
       new Map(
         Object.values(data.reactions).map(reaction => [reaction.id, { id: reaction.id, name: reaction.name }])

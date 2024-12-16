@@ -9,10 +9,6 @@ interface CytoscapeProps {
     layoutName: string;
     formData: FormData | null;
     bigModel: ReactionsData | null;
-    // shortestPathData: {
-    //   reactions: string[];
-    //   metabolites: string[];
-    // } | null;
   }
 
   interface LoadDataParams {

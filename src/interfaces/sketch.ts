@@ -21,14 +21,14 @@ interface VisualNode {
     label: string;
     color: string;
     type: 'circle' | 'square';
-    id: string; // MetaboliteAttributes.id or Reaction.id
+    id: string; 
 }
 
 interface VisualEdge {
-    source: string; // source node id
-    target: string; // target node id
-    weight: number; // quantity of metabolites
-    color: string; // color of the edge
+    source: string; 
+    target: string; 
+    weight: number; 
+    color: string; 
 }
 
 interface FilteredVisualData {

@@ -137,20 +137,20 @@ const calculateDegree = (data: VisualData): Record<string, number> => {
 const filterVisualDataByDegree = (visualData: VisualData, degreeThreshold: number): FilteredVisualData => {
     const degreeMap = calculateDegree(visualData);
 
-    // Step 1: Filter nodes by degree threshold
+    // filter nodes by degree threshold
     const filteredNodes = visualData.nodes.filter(node => {
         const degree = degreeMap[node.id] || 0;
         return degree > degreeThreshold;
     });
 
-    // Step 2: Filter edges that connect filtered nodes
+    // filter edges that connect filtered nodes
     const filteredEdges = visualData.edges.filter(edge => {
         const sourceExists = filteredNodes.some(node => node.id === edge.source);
         const targetExists = filteredNodes.some(node => node.id === edge.target);
         return sourceExists && targetExists;
     });
 
-    // Step 3: Remove any nodes that aren't part of any edge
+    // remove any nodes that aren't part of any edge
     const connectedNodeIds = new Set<string>();
     filteredEdges.forEach(edge => {
         connectedNodeIds.add(edge.source);

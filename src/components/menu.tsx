@@ -18,10 +18,13 @@ import axios from 'axios';
 
 
 
-const Menu: React.FC<MenuProps> = ({ inputNodes, setInputNodes, inputReactions, setInputReactions, setTriggerUpdate, availableMetabolites, availableReactions,onProcessModel, currentModel }) => {
+const Menu: React.FC<MenuProps> = ({ inputNodes,
+     setInputNodes, inputReactions, setInputReactions,
+      setTriggerUpdate, availableMetabolites,
+       availableReactions,onProcessModel, currentModel,
+        setCurrentModel, bigModel, formData, selectedModel, setSelectedModel }) => {
 
     const { models, loading, error } = useFetchModels();
-    const [selectedModel, setSelectedModel] = useState<string>('');
     const [metabolites, setMetabolites] = useState<string[]>(['']); 
     const [reactions, setReactions] = useState<string[]>(['']); 
     const [targetMetabolite, setTargetMetabolite] = useState<string>(''); 
@@ -32,72 +35,88 @@ const Menu: React.FC<MenuProps> = ({ inputNodes, setInputNodes, inputReactions, 
     const [path, setPath] = useState<string[]>([]);
 
     console.log("SelectedModel:",selectedModel);
+    console.log("currentModel:",currentModel);
+    console.log("availableReactions:",availableReactions);
 
     const handleOriginIdChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | null, newValue?: string) => {
         const selectedMetabolite = availableMetabolites.find(metabolite => `${metabolite.name} - ${metabolite.id}` === newValue);
         if (selectedMetabolite) {
-            console.log(`selectedOriginMetabolite: ${selectedMetabolite.id}`);
-            setOriginId(selectedMetabolite.id); // Set the `id` as the value
+            setOriginId(selectedMetabolite.id); 
         }
         
     };
 
-    // Handle destinationId change
     const handleDestinationIdChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | null, newValue?: string) => {
         const selectedMetabolite = availableMetabolites.find(metabolite => `${metabolite.name} - ${metabolite.id}` === newValue);
         if (selectedMetabolite) {
-            console.log(`selectedDestinyMetabolite: ${selectedMetabolite.id}`);
-            setDestinationId(selectedMetabolite.id); // Set the `id` as the value
+            setDestinationId(selectedMetabolite.id); 
         }
     };
 
-    // Handle shortest path calculation
     const handleShortestPath = async () => {
         try {
-            console.log("Origin ID selected:", originId);
-            console.log("Destination ID selected:", destinationId);
-        
-            if (!selectedModel) {
-                console.error("No model selected. Please select a model first.");
-                return;
-            }
-        
-            // Step 1: Fetch the file from the download endpoint
-            const fileResponse = await axios.get(`http://localhost:8080/bigg/models/${selectedModel}/download`, {
-                responseType: "blob", // Ensures the response is treated as a file
+          if (!originId || !destinationId) {
+            console.error("Please select both origin and destination metabolites.");
+            return;
+          }
+      
+          if (formData) {
+            console.log("Using uploaded model for shortest path calculation.");
+            
+            const formDataWithParams = formData;
+            formDataWithParams.append("originId", originId);
+            formDataWithParams.append("destinationId", destinationId);
+      
+            const response = await axios.post(
+              "http://localhost:8080/metabolite/shortest-path",
+              formDataWithParams,
+              { headers: { "Content-Type": "multipart/form-data" } }
+            );
+      
+            const reactionIds = response.data.path;
+            const reactionNames = reactionIds.map(id => {
+              const reaction = availableReactions.find(r => r.id === id);
+              return reaction ? reaction.name : id;
             });
-            console.log("This is the downloaded model.",fileResponse);
-        
-            const fileBlob = fileResponse.data;
-        
-            // Step 2: Create a FormData object and append the file and parameters
-            const formData = new FormData();
-            formData.append("file", new File([fileBlob], `${selectedModel}.xml`)); // Convert the Blob into a File
-            formData.append("originId", originId);
-            formData.append("destinationId", destinationId);
-        
-            // Step 3: Send the POST request
-            const response = await axios.post("http://localhost:8080/metabolite/shortest-path", formData, {
-                headers: {
-                "Content-Type": "multipart/form-data", // Required for FormData
-                },
-            });
-        
-            const reactionIds = response.data.path; // Assuming `path` contains the reaction IDs
-            console.log("Shortest path reaction IDs:", reactionIds);
-
-            // Map reaction IDs to their names using availableReactions
-            const reactionNames = reactionIds.map((id) => {
-                const reaction = availableReactions.find((reaction) => reaction.id === id);
-                return reaction ? reaction.name : id; // Use ID as fallback if name is not found
-            });
-
-            console.log("Mapped reaction names:", reactionNames);
-
-            // Set reactions for drawing
+      
             setReactions(reactionNames);
             setInputReactions(reactionNames.join(","));
             setTriggerUpdate(true);
+          } 
+          else if (selectedModel) {
+            console.log("Using BiGG model for shortest path calculation.");
+      
+            const fileResponse = await axios.get(
+              `http://localhost:8080/bigg/models/${selectedModel}/download`,
+              { responseType: "blob" }
+            );
+      
+            const fileBlob = fileResponse.data;
+            const formData = new FormData();
+            formData.append("file", new File([fileBlob], `${selectedModel}.xml`));
+            formData.append("originId", originId);
+            formData.append("destinationId", destinationId);
+      
+            const response = await axios.post(
+              "http://localhost:8080/metabolite/shortest-path",
+              formData,
+              { headers: { "Content-Type": "multipart/form-data" } }
+            );
+
+            console.log("Reactions to paint after fetching shortestPath Reactions",response)
+      
+            const reactionIds = response.data.path;
+            const reactionNames = reactionIds.map(id => {
+              const reaction = availableReactions.find(r => r.id === id);
+              return reaction ? reaction.name : id;
+            });
+      
+            setReactions(reactionNames);
+            setInputReactions(reactionNames.join(","));
+            setTriggerUpdate(true);
+          } else {
+            console.error("No model selected or uploaded. Please select or upload a model.");
+          }
         } catch (error) {
           console.error("Error calculating shortest path:", error);
         }
@@ -157,8 +176,7 @@ const Menu: React.FC<MenuProps> = ({ inputNodes, setInputNodes, inputReactions, 
     };
 
     const handleTargetAction = () => {
-        console.log("Target Metabolite:", targetMetabolite); // Example action: log to the console
-        // Implement other actions related to the target metabolite
+        console.log("Target Metabolite:", targetMetabolite); 
     };
 
     return (
@@ -196,6 +214,7 @@ const Menu: React.FC<MenuProps> = ({ inputNodes, setInputNodes, inputReactions, 
                         sx={{ backgroundColor: 'green', color: 'white', '&:hover': { backgroundColor: 'lightgreen' } }}
                         onClick={() =>
                             handleProcessModel(
+                              setCurrentModel,
                               selectedModel,
                               onProcessModel,
                               setProcessingError
@@ -259,10 +278,10 @@ const Menu: React.FC<MenuProps> = ({ inputNodes, setInputNodes, inputReactions, 
             >
                 Draw
             </Button>
-            <br/>
-            {/* Dynamic Reactions Fields */}
-            
 
+            <br/>
+
+            {/* Dynamic Reactions Fields */}
             <Grid container direction="column" spacing={1}>
             <Typography variant="h6" color="black">Draw Reactions</Typography>
                 {reactions.map((reaction, index) => (
@@ -273,7 +292,7 @@ const Menu: React.FC<MenuProps> = ({ inputNodes, setInputNodes, inputReactions, 
                                 value={reaction}
                                 onChange={(e, newValue) => handleReactionChange(index, newValue || e?.target.value || '')}
                                 placeholder={`reacción ${index + 1}`}
-                                options={[...new Set(availableMetabolites.map(metabolite => metabolite.name))]}
+                                options={[...new Set(availableReactions.map(reaction => reaction.name))]}
                             />
                             <Box ml={1}>
                                 {/* Remove Reaction Button */}
@@ -281,7 +300,7 @@ const Menu: React.FC<MenuProps> = ({ inputNodes, setInputNodes, inputReactions, 
                                     color="secondary"
                                     onClick={() => removeReactionField(index)}
                                     aria-label="remove reacción"
-                                    disabled={reactions.length === 1} // Prevent removing the last field
+                                    disabled={reactions.length === 1} 
                                 >
                                     <DeleteOutlineIcon />
                                 </IconButton>
